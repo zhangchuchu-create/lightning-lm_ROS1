@@ -12,7 +12,7 @@
 #include <thread>
 #include <utility>
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 
 namespace lightning::sys {
 using UL = std::unique_lock<std::mutex>;
@@ -129,7 +129,7 @@ void AsyncMessageProcess<T>::AddMessage(const T& msg) {
 
     msg_buffer_.push_back(msg);
     while (msg_buffer_.size() > max_size_) {
-        LOG(INFO) << name_ << " exceeds largest size: " << max_size_;
+        //LOG(INFO) << name_ << " exceeds largest size: " << max_size_;
         msg_buffer_.pop_front();
     }
 

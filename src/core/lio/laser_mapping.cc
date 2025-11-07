@@ -11,7 +11,7 @@
 namespace lightning {
 
 bool LaserMapping::Init(const std::string &config_yaml) {
-    LOG(INFO) << "init laser mapping from " << config_yaml;
+    //LOG(INFO) << "init laser mapping from " << config_yaml;
     if (!LoadParamsFromYAML(config_yaml)) {
         return false;
     }
@@ -67,22 +67,22 @@ bool LaserMapping::LoadParamsFromYAML(const std::string &yaml_file) {
         enable_skip_lidar_ = skip_lidar_num_ > 0;
 
     } catch (...) {
-        LOG(ERROR) << "bad conversion";
+        //LOG(ERROR) << "bad conversion";
         return false;
     }
 
-    LOG(INFO) << "lidar_type " << lidar_type;
+    //LOG(INFO) << "lidar_type " << lidar_type;
     if (lidar_type == 1) {
         preprocess_->SetLidarType(LidarType::AVIA);
-        LOG(INFO) << "Using AVIA Lidar";
+        //LOG(INFO) << "Using AVIA Lidar";
     } else if (lidar_type == 2) {
         preprocess_->SetLidarType(LidarType::VELO32);
-        LOG(INFO) << "Using Velodyne 32 Lidar";
+        //LOG(INFO) << "Using Velodyne 32 Lidar";
     } else if (lidar_type == 3) {
         preprocess_->SetLidarType(LidarType::OUST64);
-        LOG(INFO) << "Using OUST 64 Lidar";
+        //LOG(INFO) << "Using OUST 64 Lidar";
     } else {
-        LOG(WARNING) << "unknown lidar_type";
+        //LOG(WARNING) << "unknown lidar_type";
         return false;
     }
 
@@ -95,7 +95,7 @@ bool LaserMapping::LoadParamsFromYAML(const std::string &yaml_file) {
     } else if (ivox_nearby_type == 26) {
         ivox_options_.nearby_type_ = IVoxType::NearbyType::NEARBY26;
     } else {
-        LOG(WARNING) << "unknown ivox_nearby_type, use NEARBY18";
+        //LOG(WARNING) << "unknown ivox_nearby_type, use NEARBY18";
         ivox_options_.nearby_type_ = IVoxType::NearbyType::NEARBY18;
     }
 
@@ -125,7 +125,7 @@ void LaserMapping::ProcessIMU(const lightning::IMUPtr &imu) {
 
     UL lock(mtx_buffer_);
     if (timestamp < last_timestamp_imu_) {
-        LOG(WARNING) << "imu loop back, clear buffer";
+        //LOG(WARNING) << "imu loop back, clear buffer";
         imu_buffer_.clear();
     }
 
@@ -133,7 +133,7 @@ void LaserMapping::ProcessIMU(const lightning::IMUPtr &imu) {
         /// 更新最新imu状态
         kf_imu_.Predict(timestamp - last_timestamp_imu_, p_imu_->Q_, imu->angular_velocity, imu->linear_acceleration);
 
-        // LOG(INFO) << "newest wrt lidar: " << timestamp - kf_.GetX().timestamp_;
+        // //LOG(INFO) << "newest wrt lidar: " << timestamp - kf_.GetX().timestamp_;
 
         /// 更新ui
         if (ui_) {
@@ -155,13 +155,13 @@ bool LaserMapping::Run() {
     p_imu_->Process(measures_, kf_, scan_undistort_);
 
     if (scan_undistort_->empty() || (scan_undistort_ == nullptr)) {
-        LOG(WARNING) << "No point, skip this scan!";
+        //LOG(WARNING) << "No point, skip this scan!";
         return false;
     }
 
     /// the first scan
     if (flg_first_scan_) {
-        LOG(INFO) << "first scan pts: " << scan_undistort_->size();
+        //LOG(INFO) << "first scan pts: " << scan_undistort_->size();
 
         state_point_ = kf_.GetX();
         scan_down_world_->resize(scan_undistort_->size());
@@ -191,11 +191,11 @@ bool LaserMapping::Run() {
         }
     }
 
-    // LOG(INFO) << "LIO get cloud at beg: " << std::setprecision(14) << measures_.lidar_begin_time_
+    // //LOG(INFO) << "LIO get cloud at beg: " << std::setprecision(14) << measures_.lidar_begin_time_
     //           << ", end: " << measures_.lidar_end_time_;
 
     if (last_lidar_time_ > 0 && (measures_.lidar_begin_time_ - last_lidar_time_) > 0.5) {
-        LOG(ERROR) << "检测到雷达断流，时长：" << (measures_.lidar_begin_time_ - last_lidar_time_);
+        //LOG(ERROR) << "检测到雷达断流，时长：" << (measures_.lidar_begin_time_ - last_lidar_time_);
     }
 
     last_lidar_time_ = measures_.lidar_begin_time_;
@@ -208,7 +208,7 @@ bool LaserMapping::Run() {
 
     int cur_pts = scan_down_body_->size();
     if (cur_pts < 5) {
-        LOG(WARNING) << "Too few points, skip this scan!" << scan_undistort_->size() << ", " << scan_down_body_->size();
+        //LOG(WARNING) << "Too few points, skip this scan!" << scan_undistort_->size() << ", " << scan_down_body_->size();
         return false;
     }
     scan_down_world_->resize(cur_pts);
@@ -231,10 +231,10 @@ bool LaserMapping::Run() {
                 kf_.ChangeX(old_state);
                 state_point_ = old_state;
 
-                LOG(INFO) << "set state as prediction";
+                //LOG(INFO) << "set state as prediction";
             }
 
-            // LOG(INFO) << "old yaw: " << old_state.rot_.angleZ() << ", new: " << state_point_.rot_.angleZ();
+            // //LOG(INFO) << "old yaw: " << old_state.rot_.angleZ() << ", new: " << state_point_.rot_.angleZ();
 
             state_point_.timestamp_ = measures_.lidar_end_time_;
             euler_cur_ = state_point_.rot_;
@@ -245,8 +245,8 @@ bool LaserMapping::Run() {
     // update local map
     Timer::Evaluate([&, this]() { MapIncremental(); }, "    Incremental Mapping");
 
-    LOG(INFO) << "[ mapping ]: In num: " << scan_undistort_->points.size() << " down " << cur_pts
-              << " Map grid num: " << ivox_->NumValidGrids() << " effect num : " << effect_feat_num_;
+    //LOG(INFO) << "[ mapping ]: In num: " << scan_undistort_->points.size() << " down " << cur_pts
+            //   << " Map grid num: " << ivox_->NumValidGrids() << " effect num : " << effect_feat_num_;
 
     /// keyframes
     if (last_kf_ == nullptr) {
@@ -284,7 +284,7 @@ void LaserMapping::MakeKF() {
     Keyframe::Ptr kf = std::make_shared<Keyframe>(kf_id_++, scan_undistort_, state_point_);
 
     if (last_kf_) {
-        // LOG(INFO) << "last kf lio: " << last_kf_->GetLIOPose().translation().transpose()
+        // //LOG(INFO) << "last kf lio: " << last_kf_->GetLIOPose().translation().transpose()
         //           << ", opt: " << last_kf_->GetOptPose().translation().transpose();
 
         /// opt pose 用之前的递推
@@ -296,9 +296,9 @@ void LaserMapping::MakeKF() {
 
     kf->SetState(state_point_);
 
-    LOG(INFO) << "LIO: create kf " << kf->GetID() << ", state: " << state_point_.pos_.transpose()
-              << ", kf opt pose: " << kf->GetOptPose().translation().transpose()
-              << ", lio pose: " << kf->GetLIOPose().translation().transpose();
+    //LOG(INFO) << "LIO: create kf " << kf->GetID() << ", state: " << state_point_.pos_.transpose()
+            //   << ", kf opt pose: " << kf->GetOptPose().translation().transpose()
+            //   << ", lio pose: " << kf->GetLIOPose().translation().transpose();
 
     if (options_.is_in_slam_mode_) {
         all_keyframes_.emplace_back(kf);
@@ -307,19 +307,19 @@ void LaserMapping::MakeKF() {
     last_kf_ = kf;
 }
 
-void LaserMapping::ProcessPointCloud2(const sensor_msgs::msg::PointCloud2::SharedPtr &msg) {
+void LaserMapping::ProcessPointCloud2(const sensor_msgs::PointCloud2ConstPtr &msg) {
     UL lock(mtx_buffer_);
     Timer::Evaluate(
         [&, this]() {
             scan_count_++;
             double timestamp = ToSec(msg->header.stamp);
             if (timestamp < last_timestamp_lidar_) {
-                LOG(ERROR) << "lidar loop back, clear buffer";
-                lidar_buffer_.clear();
+                //LOG(ERROR) << "lidar loop back, clear buffer";
+                // lidar_buffer_.clear();
             }
 
-            LOG(INFO) << "get cloud at " << std::setprecision(14) << timestamp
-                      << ", latest imu: " << last_timestamp_imu_;
+            //LOG(INFO) << "get cloud at " << std::setprecision(14) << timestamp
+                    //   << ", latest imu: " << last_timestamp_imu_;
 
             CloudPtr cloud(new PointCloudType());
             preprocess_->Process(msg, cloud);
@@ -331,18 +331,18 @@ void LaserMapping::ProcessPointCloud2(const sensor_msgs::msg::PointCloud2::Share
         "Preprocess (Standard)");
 }
 
-void LaserMapping::ProcessPointCloud2(const livox_ros_driver2::msg::CustomMsg::SharedPtr &msg) {
+void LaserMapping::ProcessPointCloud2(const livox_ros_driver::CustomMsgConstPtr &msg) {
     UL lock(mtx_buffer_);
     Timer::Evaluate(
         [&, this]() {
             scan_count_++;
             double timestamp = ToSec(msg->header.stamp);
             if (timestamp < last_timestamp_lidar_) {
-                LOG(ERROR) << "lidar loop back, clear buffer";
-                lidar_buffer_.clear();
+                //LOG(ERROR) << "lidar loop back, clear buffer";
+                // lidar_buffer_.clear();
             }
 
-            // LOG(INFO) << "get cloud at " << std::setprecision(14) << timestamp
+            // //LOG(INFO) << "get cloud at " << std::setprecision(14) << timestamp
             //           << ", latest imu: " << last_timestamp_imu_;
 
             CloudPtr cloud(new PointCloudType());
@@ -363,8 +363,8 @@ void LaserMapping::ProcessPointCloud2(CloudPtr cloud) {
 
             double timestamp = math::ToSec(cloud->header.stamp);
             if (timestamp < last_timestamp_lidar_) {
-                LOG(ERROR) << "lidar loop back, clear buffer";
-                lidar_buffer_.clear();
+                //LOG(ERROR) << "lidar loop back, clear buffer";
+                // lidar_buffer_.clear();
             }
 
             lidar_buffer_.push_back(cloud);
@@ -376,6 +376,14 @@ void LaserMapping::ProcessPointCloud2(CloudPtr cloud) {
 
 bool LaserMapping::SyncPackages() {
     if (lidar_buffer_.empty() || imu_buffer_.empty()) {
+        static int empty_count = 0;
+        static bool first_check = true;
+        empty_count++;
+        if (first_check || empty_count % 100 == 0) {
+            printf("SyncPackages: lidar_buffer 大小 = %lu, imu_buffer 大小 = %lu\n", 
+                   lidar_buffer_.size(), imu_buffer_.size());
+            first_check = false;
+        }
         return false;
     }
 
@@ -385,7 +393,7 @@ bool LaserMapping::SyncPackages() {
         measures_.lidar_begin_time_ = time_buffer_.front();
 
         if (measures_.scan_->points.size() <= 1) {
-            LOG(WARNING) << "Too few input point cloud!";
+            //LOG(WARNING) << "Too few input point cloud!";
             lidar_end_time_ = measures_.lidar_begin_time_ + lidar_mean_scantime_;
         } else if (measures_.scan_->points.back().time / double(1000) < 0.5 * lidar_mean_scantime_) {
             lidar_end_time_ = measures_.lidar_begin_time_ + lidar_mean_scantime_;
@@ -403,7 +411,26 @@ bool LaserMapping::SyncPackages() {
     }
 
     if (last_timestamp_imu_ < lidar_end_time_) {
+        static bool first_warning = true;
+        if (first_warning) {
+            printf("SyncPackages 失败：IMU 时间戳不够！\n");
+            printf("  last_timestamp_imu_ = %.6f\n", last_timestamp_imu_);
+            printf("  lidar_end_time_     = %.6f\n", lidar_end_time_);
+            printf("  差值                = %.6f 秒\n", lidar_end_time_ - last_timestamp_imu_);
+            printf("需要更多 IMU 数据才能处理点云\n");
+            first_warning = false;
+        }
         return false;
+    }
+
+    static bool first_sync_success = true;
+    if (first_sync_success) {
+        printf("✓ SyncPackages 成功！\n");
+        printf("  lidar_begin_time_   = %.6f\n", measures_.lidar_begin_time_);
+        printf("  lidar_end_time_     = %.6f\n", lidar_end_time_);
+        printf("  last_timestamp_imu_ = %.6f\n", last_timestamp_imu_);
+        printf("  点云扫描时长        = %.6f 秒\n", lidar_end_time_ - measures_.lidar_begin_time_);
+        first_sync_success = false;
     }
 
     /*** push imu_ data, and pop from imu_ buffer ***/
@@ -424,7 +451,7 @@ bool LaserMapping::SyncPackages() {
     time_buffer_.pop_front();
     lidar_pushed_ = false;
 
-    // LOG(INFO) << "sync: " << std::setprecision(14) << measures_.lidar_begin_time_ << ", " <<
+    // //LOG(INFO) << "sync: " << std::setprecision(14) << measures_.lidar_begin_time_ << ", " <<
     // measures_.lidar_end_time_;
 
     return true;
@@ -564,7 +591,7 @@ void LaserMapping::ObsModel(NavState &s, ESKF::CustomObservationModel &obs) {
 
     if (effect_feat_num_ < 1) {
         obs.valid_ = false;
-        LOG(WARNING) << "No Effective Points!";
+        //LOG(WARNING) << "No Effective Points!";
         return;
     }
 
@@ -665,7 +692,7 @@ CloudPtr LaserMapping::GetGlobalMap(bool use_lio_pose, bool use_voxel, float res
     global_map_filtered->height = 1;
     global_map_filtered->width = global_map_filtered->size();
 
-    LOG(INFO) << "global map: " << global_map_filtered->size();
+    //LOG(INFO) << "global map: " << global_map_filtered->size();
 
     return global_map_filtered;
 }
@@ -676,7 +703,7 @@ void LaserMapping::SaveMap() {
 
     pcl::io::savePCDFileBinaryCompressed("./data/lio.pcd", *global_map);
 
-    LOG(INFO) << "lio map is saved to ./data/lio.pcd";
+    //LOG(INFO) << "lio map is saved to ./data/lio.pcd";
 }
 
 CloudPtr LaserMapping::GetRecentCloud() {

@@ -3,7 +3,6 @@
 //
 #pragma once
 
-#include <glog/logging.h>
 #include <execution>
 #include <list>
 #include <thread>
@@ -231,7 +230,7 @@ void IVox<dim, node_type, PointType>::GenerateNearbyGrids() {
                          KeyType(-1, 1, 1),  KeyType(1, -1, 1),  KeyType(1, 1, -1),  KeyType(-1, -1, 1),
                          KeyType(-1, 1, -1), KeyType(1, -1, -1), KeyType(-1, -1, -1)};
     } else {
-        LOG(ERROR) << "Unknown nearby_type!";
+        //LOG(ERROR) << "Unknown nearby_type!";
     }
 }
 

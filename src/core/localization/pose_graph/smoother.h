@@ -31,8 +31,8 @@ class PoseSmoother {
         if (!dr_queue_.empty()) {
             if ((dr_pose.translation() - dr_queue_.back().translation()).norm() >= smoother_dr_limit_trans_) {
                 /// 无效
-                LOG(WARNING) << "smoother motion is too large: "
-                             << (dr_pose.translation() - dr_queue_.back().translation()).norm();
+                //LOG(WARNING) << "smoother motion is too large: "
+                            //  << (dr_pose.translation() - dr_queue_.back().translation()).norm();
                 dr_queue_.clear();
                 motion_effective_ = false;
                 return;
@@ -77,16 +77,16 @@ class PoseSmoother {
         double dn = (output_pose_.translation() - pose.translation()).head<2>().norm();
         if (dn > smoother_trans_limit_) {
             // 平滑器差别太大，直接跳过去并重置
-            LOG(WARNING) << "smoother is too large, jump to target: "
-                         << (output_pose_.translation() - pose.translation()).transpose()
-                         << ", given: " << pose.translation().transpose()
-                         << ", output:" << output_pose_.translation().transpose();
+            //LOG(WARNING) << "smoother is too large, jump to target: "
+                        //  << (output_pose_.translation() - pose.translation()).transpose()
+                        //  << ", given: " << pose.translation().transpose()
+                        //  << ", output:" << output_pose_.translation().transpose();
             output_pose_ = pose;
             pose_queue_.clear();
             return;
         } else if (dn > smoother_trans_limit2_) {
             // 快速收敛到正确位姿
-            LOG(INFO) << "smoother factor set to 0.2";
+            //LOG(INFO) << "smoother factor set to 0.2";
             smooth_factor_ = 0.2;
         } else {
             // 回到默认值

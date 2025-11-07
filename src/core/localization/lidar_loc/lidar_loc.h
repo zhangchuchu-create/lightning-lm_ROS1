@@ -4,7 +4,7 @@
 #include <chrono>
 #include <deque>
 #include <iostream>
-#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/PointCloud2.h>
 #include <thread>
 
 #include "common/nav_state.h"

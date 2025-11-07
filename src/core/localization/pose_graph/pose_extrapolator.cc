@@ -46,7 +46,7 @@ bool PoseExtrapolator::AddDRLocAndExtrapolate(const NavState& dr_loc, SE3& outpu
                 pgo_compensate_trans_needed_ = false;
             }
         }
-        LOG(INFO) << "Extrapolator: compensated translation for " << compensate_distance << "m.";
+        //LOG(INFO) << "Extrapolator: compensated translation for " << compensate_distance << "m.";
     }
 
     if (pgo_compensate_rot_needed_) {

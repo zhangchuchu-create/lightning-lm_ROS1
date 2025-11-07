@@ -11,7 +11,7 @@
 #include <common/constant.h>
 #include <common/eigen_types.h>
 
-#include <rclcpp/rclcpp.hpp>
+#include <ros/ros.h>
 
 /// 配置参数
 namespace lightning {
@@ -26,7 +26,7 @@ extern float play_speed;  // 播放速度
 
 inline void SigHandle(int sig) {
     debug::flg_exit = true;
-    rclcpp::shutdown();
+    ros::shutdown();
 }
 
 }  // namespace debug

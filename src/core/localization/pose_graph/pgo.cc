@@ -3,13 +3,12 @@
 
 #include <boost/format.hpp>
 
-#include <glog/logging.h>
 
 namespace lightning::loc {
 
 PGO::PGO() : impl_(new PGOImpl), pose_extrapolator_(new PoseExtrapolator) {
     smoother_ = std::make_shared<PoseSmoother>(pgo::pgo_smooth_factor);
-    LOG(INFO) << "smoother factor: " << pgo::pgo_smooth_factor;
+    //LOG(INFO) << "smoother factor: " << pgo::pgo_smooth_factor;
 }
 
 PGO::~PGO() = default;
@@ -29,8 +28,8 @@ void PGO::PubResult() {
         if (last_lidar_loc_time_ > 0 && impl_->result_.timestamp_ > last_lidar_loc_time_) {
             if (impl_->result_.confidence_ < lidar_loc_score_thd_) {
                 localization_unusual_count_++;
-                LOG(INFO) << "当前lidar_loc分值较低: " << impl_->result_.confidence_
-                          << " , 当前次数: " << localization_unusual_count_;
+                //LOG(INFO) << "当前lidar_loc分值较低: " << impl_->result_.confidence_
+                        //   << " , 当前次数: " << localization_unusual_count_;
             } else {
                 localization_unusual_count_ = 0;
             }
@@ -40,7 +39,7 @@ void PGO::PubResult() {
 
         if (localization_unusual_count_ > localization_unusual_thd_ && last_lidar_loc_time_ > 0) {
             localization_unusual_tag_ = true;
-            // LOG(INFO) << "连续多次匹配分值过低, 需检查定位精度";
+            // //LOG(INFO) << "连续多次匹配分值过低, 需检查定位精度";
         } else {
             localization_unusual_tag_ = false;
         }
@@ -75,7 +74,7 @@ void PGO::PubResult() {
                 //     const double theta_th = std::cos(15 * M_PI / 180.0);  // 角度阈值
                 //     if (v1.dot(v2) <= theta_th) {
                 //         /// 外推检查不通过
-                //         LOG(WARNING) << "外推检查不通过：" << result.pose_.translation().transpose() << ", "
+                //         //LOG(WARNING) << "外推检查不通过：" << result.pose_.translation().transpose() << ", "
                 //                      << lidar_loc_extrap_pose.translation().transpose() << ", dv: " << v1.dot(v2);
                 //         extrap_success = false;
                 //         result.pose_ = lidar_loc_extrap_pose;
@@ -86,7 +85,7 @@ void PGO::PubResult() {
                 // if (fabs(delta.translation()[0]) > 0.5 || fabs(delta.translation()[1]) > 0.5 ||
                 //     delta.so3().log().norm() > 2.0 * M_PI / 180.0) {
                 //     /// 外推检查不通过
-                //     LOG(WARNING) << "外推检查不通过：" << result.pose_.translation().transpose() << ", "
+                //     //LOG(WARNING) << "外推检查不通过：" << result.pose_.translation().transpose() << ", "
                 //                  << lidar_loc_extrap_pose.translation().transpose()
                 //                  << ", ang: " << delta.so3().log().norm();
                 //     extrap_success = false;
@@ -145,8 +144,8 @@ bool PGO::ProcessDR(const NavState& dr_result) {
         const double last_stamp = impl_->dr_pose_queue_.back().timestamp_;
         delta_timestamp = dr_result.timestamp_ - last_stamp;
         if (dr_result.timestamp_ < last_stamp) {
-            LOG(WARNING) << "当前DR定位的结果的时间戳应当比上一个时间戳数值大，实际相减得"
-                         << dr_result.timestamp_ - last_stamp;
+            //LOG(WARNING) << "当前DR定位的结果的时间戳应当比上一个时间戳数值大，实际相减得"
+                        //  << dr_result.timestamp_ - last_stamp;
             return false;
         }
     }
@@ -178,7 +177,7 @@ bool PGO::ProcessLidarOdom(const NavState& lio_result) {
     if (!impl_->lidar_odom_pose_queue_.empty()) {
         const double last_stamp = impl_->lidar_odom_pose_queue_.back().timestamp_;
         if (lio_result.timestamp_ < last_stamp) {
-            LOG(WARNING) << "当前LidarOdom定位时间戳回退，实际相减得" << lio_result.timestamp_ - last_stamp;
+            //LOG(WARNING) << "当前LidarOdom定位时间戳回退，实际相减得" << lio_result.timestamp_ - last_stamp;
         }
     }
 
@@ -229,7 +228,7 @@ bool PGO::ProcessLidarLoc(const LocalizationResult& loc_result) {
 
     // 如果相对位姿(DR和LidarOdom有一个即可)还没来，也退出
     if (RelativePoseQueueEmpty()) {
-        LOG(WARNING) << "PGO received LidarLoc, but is waiting for LO or DR ... ";
+        //LOG(WARNING) << "PGO received LidarLoc, but is waiting for LO or DR ... ";
         return false;
     }
 
@@ -242,7 +241,7 @@ bool PGO::ProcessLidarLoc(const LocalizationResult& loc_result) {
     double lidar_loc_delta_t = loc_result.timestamp_ - last_lidar_loc_timestamp;
     if (last_lidar_loc_timestamp > 0) {
         if (lidar_loc_delta_t < 0) {
-            LOG(ERROR) << "lidar loc 时间回退: " << lidar_loc_delta_t;
+            //LOG(ERROR) << "lidar loc 时间回退: " << lidar_loc_delta_t;
             return false;
         } else {
             last_lidar_loc_timestamp = loc_result.timestamp_;
@@ -274,7 +273,7 @@ bool PGO::ProcessLidarLoc(const LocalizationResult& loc_result) {
     impl_->result_.lidar_loc_smooth_flag_ = loc_result.lidar_loc_smooth_flag_;
 
     if (!loc_result.lidar_loc_odom_error_normal_) {
-        // LOG(WARNING) << "PGO接收到LO失效";
+        // //LOG(WARNING) << "PGO接收到LO失效";
         impl_->lidar_odom_valid_ = false;
         impl_->lidar_odom_valid_cnt_ = 10;
     } else {
@@ -282,13 +281,13 @@ bool PGO::ProcessLidarLoc(const LocalizationResult& loc_result) {
         if (impl_->lidar_odom_valid_cnt_ > 0) {
             impl_->lidar_odom_valid_cnt_--;
         } else {
-            // LOG(INFO) << "PGO认为LO生效";
+            // //LOG(INFO) << "PGO认为LO生效";
             impl_->lidar_odom_valid_ = true;
         }
     }
 
-    LOG(INFO) << std::setprecision(14) << std::fixed << "PGO received LidarLoc ["
-              << new_frame->lidar_loc_pose_.translation().transpose() << "], t=" << new_frame->timestamp_;
+    //LOG(INFO) << std::setprecision(14) << std::fixed << "PGO received LidarLoc ["
+            //   << new_frame->lidar_loc_pose_.translation().transpose() << "], t=" << new_frame->timestamp_;
     return ProcessPGOFrame(new_frame);
 }
 
@@ -328,17 +327,17 @@ void PGO::LogWindowState() {
     int idx5 = (window.size() - 1) >= 0 ? (window.size() - 1) : -1;
     boost::format fmt("--- %c --- %c --- %c --- %c --- %c ---");
     std::string lidar_info = idx1 >= 0 ? "info" : "empty";
-    LOG(INFO) << "Show PGO window state: \n"
-              << " ************************************************** \n"
-              << " ** index    : --- 1st --- 2nd --- 3rd --- 4th --- 5th \n"
-              << " ** lidar loc:"
-              << " **   rtk loc:"
-              << " **   rel loc:"
-              << " ** "
-              << " ** // + is valid/good, ? is invalid/bad, W is wrong, G is good \n"
-              << " ************************************************** ";
+    //LOG(INFO) << "Show PGO window state: \n"
+            //   << " ************************************************** \n"
+            //   << " ** index    : --- 1st --- 2nd --- 3rd --- 4th --- 5th \n"
+            //   << " ** lidar loc:"
+            //   << " **   rtk loc:"
+            //   << " **   rel loc:"
+            //   << " ** "
+            //   << " ** // + is valid/good, ? is invalid/bad, W is wrong, G is good \n"
+            //   << " ************************************************** ";
 
-    // LOG(INFO) << "PGO received lidar loc ["
+    // //LOG(INFO) << "PGO received lidar loc ["
     //     << new_frame->lidar_loc_pose_.translation().transpose() << "], let's go for one shot! ||||||||||||||||| \n"
     //     << "   ********* PGO status ********* \n"
     //     << "   ** current window size : " << impl_->frames_.size() << "\n"
@@ -375,7 +374,7 @@ bool PGO::ExtrapolateLocResult(LocalizationResult& output_result) {
     // 其他数据源时间检测imu时间
     if (!dr_pose_queue.empty() && latest_time - dr_pose_queue.back().timestamp_ > imu_interruption_time_thd_) {
         imu_interruption_tag_ = true;
-        LOG(ERROR) << "长时间未获取到DR数据, IMU存在断流, 断流时间: " << latest_time - dr_pose_queue.back().timestamp_;
+        //LOG(ERROR) << "长时间未获取到DR数据, IMU存在断流, 断流时间: " << latest_time - dr_pose_queue.back().timestamp_;
     } else {
         imu_interruption_tag_ = false;
     }
@@ -439,7 +438,7 @@ bool PGO::ExtrapolateLocResult(LocalizationResult& output_result) {
 
             /// 限制此处的pose incre大小
             // if (pose_incre.translation().norm() > dr_pose_inc_th) {
-            //     LOG(WARNING) << "pose increment is too large: " << pose_incre.translation().norm()
+            //     //LOG(WARNING) << "pose increment is too large: " << pose_incre.translation().norm()
             //               << ", skip extrapolate, dt=" << dr_extrap_time << ", th: " << dr_pose_inc_th;
             //     return true;
             // }

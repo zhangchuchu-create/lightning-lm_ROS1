@@ -4,7 +4,7 @@
 
 #include "io/yaml_io.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <fstream>
 
 namespace lightning {
@@ -12,7 +12,7 @@ YAML_IO::YAML_IO(const std::string &path) {
     path_ = path;
     yaml_node_ = YAML::LoadFile(path_);
     if (yaml_node_.IsNull()) {
-        LOG(ERROR) << "Failed to open yaml: " << path_;
+        //LOG(ERROR) << "Failed to open yaml: " << path_;
     }
 
     is_opened_ = true;

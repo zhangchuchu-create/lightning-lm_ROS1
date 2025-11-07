@@ -8,7 +8,7 @@
 #include "core/math/misc.h"
 #include "core/solver/solver.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -26,7 +26,7 @@ OptimizationAlgorithm::SolverResult OptimizationAlgorithmDogleg::Solve(int itera
     if (iteration == 0) {  // built up the CCS structure, here due to easy time measure
         bool ok = solver_->BuildStructure();
         if (!ok) {
-            LOG(WARNING) << "Failure while building CCS structure";
+            //LOG(WARNING) << "Failure while building CCS structure";
             return SolverResult::Fail;
         }
 

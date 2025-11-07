@@ -30,7 +30,7 @@ void SetupOptimizer(Optimizer& optimizer, OptimizerConfig options) {
 
     if (options.is_dense_) {
         if (options.linear_solver_type_ != LinearSolverType::LINEAR_SOLVER_DENSE) {
-            LOG(FATAL) << "不能为稠密的问题设置稀疏求解器";
+            //LOG(FATAL) << "不能为稠密的问题设置稀疏求解器";
         }
 
         /// TODO: dense but not Block Solver
@@ -59,7 +59,7 @@ void SetupOptimizer(Optimizer& optimizer, OptimizerConfig options) {
             algo = std::make_shared<OptimizationAlgorithmDogleg>(solver);
             break;
         default:
-            LOG(ERROR) << "unknown optimization type";
+            //LOG(ERROR) << "unknown optimization type";
             break;
     }
 

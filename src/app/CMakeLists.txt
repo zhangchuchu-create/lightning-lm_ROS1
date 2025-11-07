@@ -3,7 +3,7 @@ add_executable(run_frontend_offline
 )
 
 target_link_libraries(run_frontend_offline
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 
@@ -12,7 +12,7 @@ add_executable(run_loop_offline
 )
 
 target_link_libraries(run_loop_offline
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 
@@ -21,7 +21,7 @@ add_executable(run_slam_offline
 )
 
 target_link_libraries(run_slam_offline
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 
@@ -30,7 +30,7 @@ add_executable(run_slam_online
 )
 
 target_link_libraries(run_slam_online
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 
@@ -39,7 +39,7 @@ add_executable(run_loc_offline
 )
 
 target_link_libraries(run_loc_offline
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 
@@ -48,7 +48,7 @@ add_executable(run_loc_online
 )
 
 target_link_libraries(run_loc_online
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 
@@ -57,7 +57,7 @@ add_executable(test_ui
 )
 
 target_link_libraries(test_ui
-        ${PROJECT_NAME}.libs
+        ${PROJECT_NAME}
         ${third_party_libs}
 )
 

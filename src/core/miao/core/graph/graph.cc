@@ -7,7 +7,7 @@
 #include "core/graph/edge.h"
 #include "vertex.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <numeric>
 #include <unordered_set>
 
@@ -55,7 +55,7 @@ bool Graph::AddEdge(std::shared_ptr<Edge> e) {
 
     e->SetInternalId(next_edge_id_++);
     if (e->NumUndefinedVertices()) {
-        LOG(ERROR) << "this edge has undefined vertex.";
+        //LOG(ERROR) << "this edge has undefined vertex.";
         return true;
     }
 

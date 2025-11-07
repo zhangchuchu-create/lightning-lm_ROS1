@@ -10,7 +10,7 @@
 #include "core/g2p5/g2p5_subgrid.h"
 
 #include <bitset>
-#include <nav_msgs/msg/occupancy_grid.hpp>
+#include <nav_msgs/OccupancyGrid.h>
 #include <opencv2/core.hpp>
 
 namespace lightning::g2p5 {
@@ -44,7 +44,7 @@ class G2P5Map {
     std::shared_ptr<G2P5Map> MakeDeepCopy();
 
     /// 转换至ros occupancy grid
-    nav_msgs::msg::OccupancyGrid ToROS();
+    nav_msgs::OccupancyGrid ToROS();
 
     /// 转换至opencv::Mat
     cv::Mat ToCV();

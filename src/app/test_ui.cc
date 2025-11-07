@@ -4,15 +4,18 @@
 
 #include "ui/pangolin_window.h"
 
+#include <gflags/gflags.h>
 #include <pangolin/display/display.h>
 #include <pangolin/display/view.h>
 #include <pangolin/gl/gldraw.h>
 #include <pangolin/handler/handler.h>
 
+//using namespace google::logging::internal;
+
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
 
     google::ParseCommandLineFlags(&argc, &argv, true);
 

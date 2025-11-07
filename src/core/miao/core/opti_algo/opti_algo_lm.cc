@@ -8,7 +8,7 @@
 #include "core/graph/vertex.h"
 #include "core/solver/solver.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -29,7 +29,7 @@ OptimizationAlgorithm::SolverResult OptimizationAlgorithmLevenberg::Solve(int it
         ok = solver_->BuildStructure();
 
         if (!ok) {
-            LOG(WARNING) << "Failure while building CCS structure";
+            //LOG(WARNING) << "Failure while building CCS structure";
             return SolverResult::Fail;
         }
     }
@@ -92,7 +92,7 @@ OptimizationAlgorithm::SolverResult OptimizationAlgorithmLevenberg::Solve(int it
         }
         qmax++;
 
-        // LOG(INFO) << "lm iter: " << qmax << ", temp chi: " << tempChi << ", current chi: " << currentChi
+        // //LOG(INFO) << "lm iter: " << qmax << ", temp chi: " << tempChi << ", current chi: " << currentChi
         //           << ", rho: " << rho;
 
         if (should_break) {
@@ -102,11 +102,11 @@ OptimizationAlgorithm::SolverResult OptimizationAlgorithmLevenberg::Solve(int it
     } while (rho < 0 && qmax < max_trails_after_failure_ && !optimizer_->Terminate());
 
     if (qmax == max_trails_after_failure_ || rho == 0 || !std::isfinite(current_lambda_)) {
-        // LOG(WARNING) << "solver terminated, rho: " << rho << ", qmax: " << qmax << ", " << current_lambda_;
+        // //LOG(WARNING) << "solver terminated, rho: " << rho << ", qmax: " << qmax << ", " << current_lambda_;
         return SolverResult::Terminate;
     }
 
-    // LOG(INFO) << "lm iter: " << qmax << ", lambda: " << current_lambda_;
+    // //LOG(INFO) << "lm iter: " << qmax << ", lambda: " << current_lambda_;
 
     return SolverResult::OK;
 }

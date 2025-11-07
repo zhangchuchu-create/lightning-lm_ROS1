@@ -3,7 +3,7 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <cstdint>
 #include <iostream>
 #include <random>
@@ -26,9 +26,9 @@ DEFINE_double(noise_rotation, 0.001, "noise level for the rotation");
 DEFINE_bool(use_PCG, false, "use PCG instead of the Cholesky");
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     using namespace lightning::miao;

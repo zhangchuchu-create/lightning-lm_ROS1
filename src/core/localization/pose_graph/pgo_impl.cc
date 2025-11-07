@@ -66,7 +66,7 @@ PGOImpl::PGOImpl(Options options) {
 }
 
 bool PGOImpl::Reset() {
-    LOG(WARNING) << "PGO is reset";
+    //LOG(WARNING) << "PGO is reset";
     CleanProblem();
     frames_.clear();
     frames_by_id_.clear();
@@ -80,14 +80,14 @@ void PGOImpl::AddPGOFrame(std::shared_ptr<PGOFrame> pgo_frame) {
     if (last_frame_ != nullptr) {
         const double adjacent_dalta_t = pgo_frame->timestamp_ - last_frame_->timestamp_;
         if (adjacent_dalta_t < 0.) {
-            LOG(WARNING) << "PGO received pgoframe, however timestamp rollback for " << adjacent_dalta_t << "senonds!";
+            //LOG(WARNING) << "PGO received pgoframe, however timestamp rollback for " << adjacent_dalta_t << "senonds!";
             return;
         }
         pgo_frame->lidar_loc_delta_t_ = adjacent_dalta_t;
     }
 
     if (debug_) {
-        LOG(INFO) << "inserting pgo frame, it's timestamp is " << std::setprecision(18) << pgo_frame->timestamp_;
+        //LOG(INFO) << "inserting pgo frame, it's timestamp is " << std::setprecision(18) << pgo_frame->timestamp_;
     }
 
     // 这里尝试设置相对位姿观测，如果上游（通常是激光定位）给了就跳过；
@@ -95,15 +95,15 @@ void PGOImpl::AddPGOFrame(std::shared_ptr<PGOFrame> pgo_frame) {
     bool interp_lio_success = AssignLidarOdomPoseIfNeeded(pgo_frame);
     bool interp_dr_success = AssignDRPoseIfNeeded(pgo_frame);
     if (!interp_lio_success && !interp_dr_success) {
-        LOG(ERROR) << "PGO received pgo frame, but assign relative pose failed!";
+        //LOG(ERROR) << "PGO received pgo frame, but assign relative pose failed!";
         return;
     }
 
     is_in_map_ = pgo_frame->lidar_loc_set_ && pgo_frame->lidar_loc_valid_;
     if (!is_in_map_) {
         //
-        LOG(ERROR) << "PGO received PGOFrame with lidar_loc_set_(" << pgo_frame->lidar_loc_set_
-                   << "), lidar_loc_valid_(" << pgo_frame->lidar_loc_valid_ << "); Reject It!";
+        //LOG(ERROR) << "PGO received PGOFrame with lidar_loc_set_(" << pgo_frame->lidar_loc_set_
+                //    << "), lidar_loc_valid_(" << pgo_frame->lidar_loc_valid_ << "); Reject It!";
         return;
     }
 
@@ -163,9 +163,9 @@ bool PGOImpl::AssignLidarOdomPoseIfNeeded(std::shared_ptr<PGOFrame> frame) {
 
         } else {
             // lidarodom 不见得一定比 lidarloc 快。
-            LOG(WARNING) << "PGOFrame (frame_id " << frame->frame_id_ << ") Interpolate on lidarOdom Failed!";
-            LOG(WARNING) << "PGOFrame time: " << std::fixed << std::setprecision(18) << frame->timestamp_
-                         << ", latest lidarOdom time: " << lidar_odom_pose_queue_.back().timestamp_;
+            //LOG(WARNING) << "PGOFrame (frame_id " << frame->frame_id_ << ") Interpolate on lidarOdom Failed!";
+            //LOG(WARNING) << "PGOFrame time: " << std::fixed << std::setprecision(18) << frame->timestamp_
+                        //  << ", latest lidarOdom time: " << lidar_odom_pose_queue_.back().timestamp_;
             return false;
         }
     } else {
@@ -197,11 +197,11 @@ bool PGOImpl::AssignDRPoseIfNeeded(std::shared_ptr<PGOFrame> frame) {
             frame->dr_vel_b_ = interp_vel_b;
             static int counts = 0;
             ++counts;
-            // LOG(INFO) << "PGO interp DR  success - " << counts << " times.";
+            // //LOG(INFO) << "PGO interp DR  success - " << counts << " times.";
             return true;
         } else {
             // DR理论上应该比 lidarloc 快。
-            LOG(WARNING) << "PGOFrame (frame_id" << frame->frame_id_ << ") Interpolate on DR Failed!";
+            //LOG(WARNING) << "PGOFrame (frame_id" << frame->frame_id_ << ") Interpolate on DR Failed!";
             return false;
         }
     } else {
@@ -228,12 +228,12 @@ void PGOImpl::UpdateLidarOdomStatusInFrame(NavState& lio_result, std::shared_ptr
 
 void PGOImpl::RunOptimization() {
     // if (frames_.size() < kMinNumRequiredForOptimization) {
-    //     LOG(INFO) << "Skip optimization because frame size is " << frames_.size();
+    //     //LOG(INFO) << "Skip optimization because frame size is " << frames_.size();
     //     return;
     // }
 
     if (debug_) {
-        LOG(INFO) << "Run pose graph optimization: ";
+        //LOG(INFO) << "Run pose graph optimization: ";
     }
 
     // build g2o problem
@@ -505,14 +505,14 @@ void PGOImpl::RemoveOutliers() {
             auto frame = frames_by_id_.find(e->GetVertex(0)->GetId())->second;
 
             if (debug_) {
-                LOG(INFO) << "frame " << frame->frame_id_ << " has outlier gps, chi2 = " << e->Chi2() << " > "
-                          << e->GetRobustKernel()->Delta();
+                //LOG(INFO) << "frame " << frame->frame_id_ << " has outlier gps, chi2 = " << e->Chi2() << " > "
+                        //   << e->GetRobustKernel()->Delta();
             }
         } else {
             auto frame = frames_by_id_.find(e->GetVertex(0)->GetId())->second;
             if (debug_) {
-                LOG(INFO) << "frame " << frame->frame_id_ << " has inlier gps, chi2 = " << e->Chi2() << " < "
-                          << e->GetRobustKernel()->Delta();
+                //LOG(INFO) << "frame " << frame->frame_id_ << " has inlier gps, chi2 = " << e->Chi2() << " < "
+                        //   << e->GetRobustKernel()->Delta();
             }
             e->SetRobustKernel(nullptr);
         }
@@ -524,10 +524,10 @@ void PGOImpl::UpdatePoseGraphState() {}
 void PGOImpl::CollectOptimizationStatistics() {
     /// 打印必要信息
     if (debug_) {
-        LOG(INFO) << std::string("LidarLoc       -- ") + print_info(lidar_loc_edges_, options_.lidar_loc_outlier_th);
-        LOG(INFO) << std::string("LidarOdom      -- ") + print_info(lidar_odom_edges_);
-        LOG(INFO) << std::string("DR             -- ") + print_info(dr_edges_);
-        LOG(INFO) << std::string("Marginal Prior -- ") + print_info(prior_edges_);
+        //LOG(INFO) << std::string("LidarLoc       -- ") + print_info(lidar_loc_edges_, options_.lidar_loc_outlier_th);
+        //LOG(INFO) << std::string("LidarOdom      -- ") + print_info(lidar_odom_edges_);
+        //LOG(INFO) << std::string("DR             -- ") + print_info(dr_edges_);
+        //LOG(INFO) << std::string("Marginal Prior -- ") + print_info(prior_edges_);
     }
 
     // 把滑窗中最新帧的信息更新到result中，在需要时输出到外部
@@ -635,7 +635,7 @@ void PGOImpl::UpdateFinalResultByWindow() {
     // result_.absolute_pose_valid_ = lf->rtk_valid_;  // outlier也算valid
     // result_.rtk_status_ = gps_queue_.back().gps_status_;  // 发送给下游：rtk实时状态
 
-    // LOG(INFO) << "PGO assigned result with position [" << result_.pose_.translation().transpose() << "].";
+    // //LOG(INFO) << "PGO assigned result with position [" << result_.pose_.translation().transpose() << "].";
 
     /// 确定各个source的定位状态
     bool following_gps = false;
@@ -665,7 +665,7 @@ void PGOImpl::UpdateFinalResultByWindow() {
     //     break;
     //   }
     // }
-    // // LOG(INFO) << "------- recent 5 minimum rtk chi2 is " << min_rtk_chi2;
+    // // //LOG(INFO) << "------- recent 5 minimum rtk chi2 is " << min_rtk_chi2;
     // if (!lf->rtk_valid_) {
     //   // RTK 设置了但是RTK状态位无效，所以自动是outlier
     //   result_.rtk_loc_inlier_ = false;
@@ -675,7 +675,7 @@ void PGOImpl::UpdateFinalResultByWindow() {
     //     result_.rtk_loc_inlier_ = true;
     //   } else {
     //     result_.rtk_loc_inlier_ = false;
-    //     LOG(WARNING) << "rtk is outlier, chi2 = " << lf->rtk_chi2_ << ", > " << pgo_option::rtk_outlier_th;
+    //     //LOG(WARNING) << "rtk is outlier, chi2 = " << lf->rtk_chi2_ << ", > " << pgo_option::rtk_outlier_th;
     //   }
     // }
 
@@ -693,7 +693,7 @@ void PGOImpl::UpdateFinalResultByWindow() {
     //     // if (lf->lidar_loc_set_ && lf->lidar_loc_valid_) {
     //     result_.lidar_loc_inlier_ = lf->lidar_loc_chi2_ < options_.lidar_loc_outlier_th;
     //     if (!result_.lidar_loc_inlier_) {
-    //         LOG(WARNING) << "lidar loc is outlier, chi2 = " << lf->lidar_loc_chi2_ << ", > "
+    //         //LOG(WARNING) << "lidar loc is outlier, chi2 = " << lf->lidar_loc_chi2_ << ", > "
     //                      << options_.lidar_loc_outlier_th;
     //     }
     // }
@@ -719,13 +719,13 @@ void PGOImpl::UpdateFinalResultByWindow() {
     //   result_.status_ = common::GlobalPoseStatus::OTHER;
     // }
 
-    // LOG(INFO) << "PGO assigned result with global status [" << common::StatusToString(result_.status_) << "].";
+    // //LOG(INFO) << "PGO assigned result with global status [" << common::StatusToString(result_.status_) << "].";
 
     // // 判定是否需要尝试从RTK pose来搜索激光定位
     // /// 如果最近的rtk有效 (且与优化pose有明显差异)，无论如何都可以尝试一下（试试又不会怀孕）
     // if (lf->rtk_valid_ &&
     //     (lf->rtk_pose_.translation().head<2>() - lf->lidar_loc_pose_.translation().head<2>()).norm() > 0.2) {
-    //     LOG(INFO) << "should try rtk pose: " << lf->rtk_pose_.translation().head<2>().transpose()
+    //     //LOG(INFO) << "should try rtk pose: " << lf->rtk_pose_.translation().head<2>().transpose()
     //               << " and opti: " << lf->opti_pose_.translation().head<2>().transpose();
     //     should_try_rtk_pose_for_localization_ = true;
     // }

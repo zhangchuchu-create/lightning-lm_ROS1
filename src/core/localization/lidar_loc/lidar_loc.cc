@@ -11,7 +11,6 @@
 #include "pclomp/voxel_grid_covariance_omp_impl.hpp"
 
 #include "core/localization/lidar_loc/lidar_loc.h"
-#include "glog/logging.h"
 #include "io/file_io.h"
 #include "io/yaml_io.h"
 #include "ui/pangolin_window.h"
@@ -38,8 +37,8 @@ LidarLoc::LidarLoc(LidarLoc::Options options) : options_(options) {
     pcl_icp_->setMaximumIterations(4);
     pcl_icp_->setTransformationEpsilon(0.01);
 
-    LOG(INFO) << "match name is NDT_OMP"
-              << ", MaximumIterations is: " << pcl_ndt_->getMaximumIterations();
+    //LOG(INFO) << "match name is NDT_OMP"
+            //   << ", MaximumIterations is: " << pcl_ndt_->getMaximumIterations();
 }
 
 LidarLoc::~LidarLoc() {
@@ -75,7 +74,7 @@ bool LidarLoc::Init(const std::string& config_path) {
     lidar_loc::grid_search_angle_step = yaml.GetValue<double>("lidar_loc", "grid_search_angle_step");
     lidar_loc::grid_search_angle_range = yaml.GetValue<double>("lidar_loc", "grid_search_angle_range");
 
-    LOG(INFO) << "min init confidence: " << options_.min_init_confidence_;
+    //LOG(INFO) << "min init confidence: " << options_.min_init_confidence_;
 
     std::string map_policy = yaml.GetValue<std::string>("maps", "dyn_cloud_policy");
     if (map_policy == "short") {
@@ -125,7 +124,7 @@ bool LidarLoc::ProcessCloud(CloudPtr cloud_input) {
     assert(cloud_input != nullptr);
 
     if (cloud_input->empty() || cloud_input->size() < 50) {
-        LOG(WARNING) << "loc input is empty or invalid, sz: " << cloud_input->size();
+        //LOG(WARNING) << "loc input is empty or invalid, sz: " << cloud_input->size();
         return false;
     }
 
@@ -188,8 +187,8 @@ bool LidarLoc::ProcessLO(const NavState& state) {
     if (!lo_pose_queue_.empty()) {
         const double last_stamp = lo_pose_queue_.back().timestamp_;
         if (state.timestamp_ < last_stamp) {
-            LOG(WARNING) << "当前相对定位的结果的时间戳应当比上一个时间戳数值大，实际相减得"
-                         << state.timestamp_ - last_stamp;
+            //LOG(WARNING) << "当前相对定位的结果的时间戳应当比上一个时间戳数值大，实际相减得"
+                        //  << state.timestamp_ - last_stamp;
             return false;
         }
     }
@@ -239,8 +238,8 @@ bool LidarLoc::YawSearch(SE3& pose, double& confidence, CloudPtr input, CloudPtr
         index.emplace_back(i);
     }
 
-    LOG(INFO) << "init yaw: " << init_yaw << ", p: " << RPYXYZ.pitch << ", ro: " << RPYXYZ.roll << ", search from "
-              << searched_yaw.front() << " to " << searched_yaw.back();
+    //LOG(INFO) << "init yaw: " << init_yaw << ", p: " << RPYXYZ.pitch << ", ro: " << RPYXYZ.roll << ", search from "
+            //   << searched_yaw.front() << " to " << searched_yaw.back();
 
     /// 粗分辨率
     std::for_each(index.begin(), index.end(), [&](int i) {
@@ -265,14 +264,14 @@ bool LidarLoc::YawSearch(SE3& pose, double& confidence, CloudPtr input, CloudPtr
     }
 
     if (confidence > options_.min_init_confidence_) {
-        LOG(INFO) << "init success, score: " << confidence << ", th=" << options_.min_init_confidence_;
+        //LOG(INFO) << "init success, score: " << confidence << ", th=" << options_.min_init_confidence_;
         Eigen::Vector3d suc_translation = pose.translation();
         Eigen::Matrix3d suc_rotation_matrix = pose.rotationMatrix();
         double suc_x = suc_translation.x();
         double suc_y = suc_translation.y();
         double suc_yaw = atan2(suc_rotation_matrix(1, 0), suc_rotation_matrix(0, 0));
-        LOG(INFO) << "localization init success, pose: " << suc_x << ", " << suc_y << ", " << suc_yaw
-                  << ", conf: " << confidence;
+        //LOG(INFO) << "localization init success, pose: " << suc_x << ", " << suc_y << ", " << suc_yaw
+                //   << ", conf: " << confidence;
         yaw_search_success = true;
     }
 
@@ -301,8 +300,8 @@ bool LidarLoc::InitWithFP(CloudPtr input, const SE3& fp_pose) {
         last_abs_pose_ = pose_esti;
 
         current_score_ = fitness_score;
-        LOG(INFO) << "fitness_score is: " << fitness_score << ", global_pose is: " << fp_pose.translation().transpose();
-        LOG(INFO) << " [Loc init pose]: " << last_abs_pose_.translation().transpose();
+        //LOG(INFO) << "fitness_score is: " << fitness_score << ", global_pose is: " << fp_pose.translation().transpose();
+        //LOG(INFO) << " [Loc init pose]: " << last_abs_pose_.translation().transpose();
 
         if (current_lo_pose_set_) {
             // 设置上一次的相对定位结果
@@ -317,7 +316,7 @@ bool LidarLoc::InitWithFP(CloudPtr input, const SE3& fp_pose) {
         fp_init_fail_pose_vec_.clear();
     } else {
         // 添加失败历史记录
-        LOG(INFO) << "init failed, score: " << fitness_score;
+        //LOG(INFO) << "init failed, score: " << fitness_score;
         fp_init_fail_pose_vec_.emplace_back(fp_pose);
         fp_last_tried_time_ = 1e-6 * static_cast<double>(input->header.stamp);
     }
@@ -344,12 +343,12 @@ bool LidarLoc::TryOtherSolution(CloudPtr input, SE3& pose) {
         float score_th = std::min(1.5 * current_score_, current_score_ + 0.3);
         if (fitness_score > score_th && fitness_score > 1.0) {
             // 显著好于现在的估计
-            LOG(WARNING) << "rtk solution is significantly better: " << fitness_score << " " << current_score_;
+            //LOG(WARNING) << "rtk solution is significantly better: " << fitness_score << " " << current_score_;
             pose = pose_esti;
             localization_result_.lidar_loc_smooth_flag_ = false;
             return true;
         } else {
-            LOG(INFO) << "not using rtk solution: " << fitness_score << " " << current_score_;
+            //LOG(INFO) << "not using rtk solution: " << fitness_score << " " << current_score_;
             return false;
         }
     }
@@ -402,7 +401,7 @@ bool LidarLoc::UpdateGlobalMap() {
 }
 
 void LidarLoc::UpdateMapThread() {
-    LOG(INFO) << "UpdateMapThread thread is running";
+    //LOG(INFO) << "UpdateMapThread thread is running";
     while (!update_map_quit_) {
         if (map_->MapUpdated() || map_->DynamicMapUpdated()) {
             UpdateGlobalMap();
@@ -425,7 +424,7 @@ void LidarLoc::SetInitialPose(SE3 init_pose) {
 
     initial_pose_set_ = true;
     initial_pose_ = init_pose;
-    LOG(INFO) << "Set initial pose is: " << initial_pose_.translation().transpose();
+    //LOG(INFO) << "Set initial pose is: " << initial_pose_.translation().transpose();
 }
 
 void LidarLoc::Align(const CloudPtr& input) {
@@ -436,20 +435,20 @@ void LidarLoc::Align(const CloudPtr& input) {
     double current_time = math::ToSec(input->header.stamp) + lo::lidar_time_interval;
     current_timestamp_ = current_time;
 
-    LOG(INFO) << "current time: " << std::fixed << std::setprecision(12) << current_timestamp_;
+    //LOG(INFO) << "current time: " << std::fixed << std::setprecision(12) << current_timestamp_;
 
     /// 设置当前帧对应的rel_pose
     if (!AssignLOPose(current_time)) {
-        LOG(WARNING) << "assign LO pose failed";
+        //LOG(WARNING) << "assign LO pose failed";
     }
 
     if (!AssignDRPose(current_time)) {
-        LOG(WARNING) << "assign DR pose failed";
+        //LOG(WARNING) << "assign DR pose failed";
     }
 
     /// 1. 车辆静止处理
     if (parking_ && loc_inited_) {
-        LOG(INFO) << "车辆静止，不做匹配";
+        //LOG(INFO) << "车辆静止，不做匹配";
 
         UpdateState(input);
         current_abs_pose_ = last_abs_pose_;
@@ -469,13 +468,13 @@ void LidarLoc::Align(const CloudPtr& input) {
     /// 2. 初始化处理
     if (!loc_inited_) {
         UL lock_init(initial_pose_mutex_);
-        LOG(INFO) << "initing lidarloc";
+        //LOG(INFO) << "initing lidarloc";
         SetInitRltState();
 
         if (initial_pose_set_) {
             /// 尝试在给定点初始化
             if (InitWithFP(input, initial_pose_)) {
-                LOG(INFO) << "init with external pose: " << initial_pose_.translation().transpose();
+                //LOG(INFO) << "init with external pose: " << initial_pose_.translation().transpose();
                 initial_pose_set_ = false;
                 return;
             }
@@ -491,12 +490,12 @@ void LidarLoc::Align(const CloudPtr& input) {
                     (current_dr_pose_.translation() - last_tried_pose.translation()).norm() > 0.3 ||
                     (current_dr_pose_.so3().inverse() * last_tried_pose.so3()).log().norm() > 10 * M_PI / 180.0;
                 if (!should_try) {
-                    LOG(INFO) << "skip trying init, please move to another place.";
+                    //LOG(INFO) << "skip trying init, please move to another place.";
                     return;
                 }
             } else {
-                LOG(INFO) << "fp tried pose: " << fp_init_fail_pose_vec_.size()
-                          << ", dr pose set: " << current_dr_pose_set_;
+                //LOG(INFO) << "fp tried pose: " << fp_init_fail_pose_vec_.size()
+                        //   << ", dr pose set: " << current_dr_pose_set_;
             }
 
             auto all_fps = map_->GetAllFP();
@@ -504,17 +503,17 @@ void LidarLoc::Align(const CloudPtr& input) {
             for (const auto& fp : all_fps) {
                 map_->LoadOnPose(fp.pose_);
                 if (InitWithFP(input, fp.pose_)) {
-                    LOG(INFO) << "init with fp: " << fp.name_;
+                    //LOG(INFO) << "init with fp: " << fp.name_;
                     fp_init_success = true;
                     break;
                 }
             }
 
             if (!fp_init_success) {
-                LOG(INFO) << "FP init failed.";
+                //LOG(INFO) << "FP init failed.";
                 if (current_dr_pose_set_) {
-                    LOG(INFO) << "record fp failed time: " << std::setprecision(12) << current_time
-                              << ", pose: " << current_dr_pose_.translation().transpose();
+                    //LOG(INFO) << "record fp failed time: " << std::setprecision(12) << current_time
+                            //   << ", pose: " << current_dr_pose_.translation().transpose();
                     fp_last_tried_time_ = current_time;
                     fp_init_fail_pose_vec_.emplace_back(current_dr_pose_);
                 }
@@ -537,7 +536,7 @@ void LidarLoc::Align(const CloudPtr& input) {
         const SE3 delta = last_lo_pose_.inverse() * current_lo_pose_;
         guess_from_lo = last_abs_pose_ * delta;
         // guess_from_lo.translation()[2] = 0;
-        LOG(INFO) << "loc using lo guess: " << guess_from_lo.translation().transpose();
+        //LOG(INFO) << "loc using lo guess: " << guess_from_lo.translation().transpose();
     }
 
     SE3 guess_from_self = guess_from_lo;
@@ -561,9 +560,9 @@ void LidarLoc::Align(const CloudPtr& input) {
     bool try_dr = false;
     if (((guess_from_dr.translation() - guess_from_lo.translation()).norm() >= try_other_guess_trans_th_ ||
          (guess_from_dr.so3().inverse() * guess_from_lo.so3()).log().norm() >= try_other_guess_rot_th_)) {
-        LOG(INFO) << "trying dr pose: " << guess_from_dr.translation().transpose() << ", "
-                  << (guess_from_dr.so3().inverse() * guess_from_lo.so3()).log().norm()
-                  << ", vel_norm: " << current_vel_b_.norm();
+        //LOG(INFO) << "trying dr pose: " << guess_from_dr.translation().transpose() << ", "
+                //   << (guess_from_dr.so3().inverse() * guess_from_lo.so3()).log().norm()
+                //   << ", vel_norm: " << current_vel_b_.norm();
         try_dr = true;
     }
 
@@ -572,8 +571,8 @@ void LidarLoc::Align(const CloudPtr& input) {
          (guess_from_self.so3().inverse() * guess_from_lo.so3()).log().norm() >= try_other_guess_rot_th_) &&
         ((guess_from_dr.translation() - guess_from_self.translation()).norm() >= try_other_guess_trans_th_ ||
          (guess_from_dr.so3().inverse() * guess_from_self.so3()).log().norm() >= try_other_guess_rot_th_)) {
-        LOG(INFO) << "trying self extrap pose: " << guess_from_self.translation().transpose() << ", "
-                  << (guess_from_self.so3().inverse() * guess_from_lo.so3()).log().norm();
+        //LOG(INFO) << "trying self extrap pose: " << guess_from_self.translation().transpose() << ", "
+                //   << (guess_from_self.so3().inverse() * guess_from_lo.so3()).log().norm();
         try_self = true;
     }
 
@@ -605,15 +604,15 @@ void LidarLoc::Align(const CloudPtr& input) {
         if (score_dr > (fitness_score - 0.1)) {
             current_pose_esti = res_of_dr;
             fitness_score = score_dr;
-            LOG(INFO) << "take dr guess: " << current_pose_esti.translation().transpose()
-                      << " , confidence: " << score_dr << ", v_norm: " << current_vel_b_.norm();
+            //LOG(INFO) << "take dr guess: " << current_pose_esti.translation().transpose()
+                    //   << " , confidence: " << score_dr << ", v_norm: " << current_vel_b_.norm();
         }
     }
 
     double score_self = 0;
     if (try_self) {
         /// 尝试自身外推的pose
-        LOG(INFO) << "localize with extrap";
+        //LOG(INFO) << "localize with extrap";
 
         res_of_self = guess_from_self;
         loc_success_self = Localize(res_of_self, score_self, input, output_cloud);
@@ -622,15 +621,15 @@ void LidarLoc::Align(const CloudPtr& input) {
         if (score_self > (fitness_score + 0.1)) {
             current_pose_esti = res_of_self;
             fitness_score = score_self;
-            LOG(INFO) << "take self guess: " << current_pose_esti.translation().transpose()
-                      << " , confidence: " << score_self;
+            //LOG(INFO) << "take self guess: " << current_pose_esti.translation().transpose()
+                    //   << " , confidence: " << score_self;
         }
     }
 
     /// NOTE 如果LO, DR出发点和收敛点不同，但分值相近，说明场景可能处在退化状态，此时使用DR预测的Pose
     if (try_dr && (res_of_lo.translation() - res_of_dr.translation()).head<2>().norm() > 0.2 &&
         fabs(score_lo - score_dr) < 0.2 && score_lo < 1.2) {
-        LOG(WARNING) << "判定激光定位进入退化状态，现在会使用DR递推pose而不是激光定位位置";
+        //LOG(WARNING) << "判定激光定位进入退化状态，现在会使用DR递推pose而不是激光定位位置";
         current_pose_esti = guess_from_dr;
     }
 
@@ -650,7 +649,7 @@ void LidarLoc::Align(const CloudPtr& input) {
     if (loc_success_lo || loc_success_self || loc_success_dr) {
         loc_success = true;
     } else {
-        LOG(INFO) << "loc success is false.";
+        //LOG(INFO) << "loc success is false.";
     }
 
     if (loc_success) {
@@ -659,7 +658,7 @@ void LidarLoc::Align(const CloudPtr& input) {
         match_fail_count_ = 0;
     } else {
         current_score_ = fitness_score;
-        LOG(WARNING) << "localization failed! score: " << current_score_;
+        //LOG(WARNING) << "localization failed! score: " << current_score_;
 
         ///  若连续3帧匹配失败就设一个大分值
         ++match_fail_count_;
@@ -710,7 +709,7 @@ void LidarLoc::Align(const CloudPtr& input) {
           options_.update_kf_dis_) ||
          fabs(current_time - last_dyn_upd_pose_.timestamp_) > options_.update_kf_time_)) {
         if (score_cond /*  || update_cache_dis_ < options_.max_update_cache_dis_ */) {
-            // LOG(INFO) << "passing through z filter, input:" << input->size();
+            // //LOG(INFO) << "passing through z filter, input:" << input->size();
             pcl::PassThrough<PointType> pass;
             pass.setInputCloud(input);
 
@@ -733,7 +732,7 @@ void LidarLoc::Align(const CloudPtr& input) {
         }
     }
 
-    LOG(INFO) << "updating scores";
+    //LOG(INFO) << "updating scores";
 
     if (lidar_loc_pose_queue_.empty()) {
         lidar_loc_pose_queue_.emplace_back(current_time, current_abs_pose_);
@@ -770,13 +769,13 @@ bool LidarLoc::CheckLidarOdomValid(const SE3& current_pose_esti, double& delta_p
     bool valid = true;
 
     if (delta_posi > options_.lidar_loc_odom_th_ && last_lo_pose_set_) {
-        LOG(INFO) << "delta_rel_abs_pose is: " << delta_posi;
-        LOG(INFO) << "LO相对pose: " << last_lo_pose_.translation().transpose() << " "
-                  << current_lo_pose_.translation().transpose() << " "
-                  << (last_lo_pose_.inverse() * current_lo_pose_).translation().transpose();
-        LOG(INFO) << "Lidar Loc计算相对pose: " << last_abs_pose_.translation().transpose() << " "
-                  << current_pose_esti.translation().transpose() << " "
-                  << (last_abs_pose_.inverse() * current_pose_esti).translation().transpose();
+        //LOG(INFO) << "delta_rel_abs_pose is: " << delta_posi;
+        //LOG(INFO) << "LO相对pose: " << last_lo_pose_.translation().transpose() << " "
+                //   << current_lo_pose_.translation().transpose() << " "
+                //   << (last_lo_pose_.inverse() * current_lo_pose_).translation().transpose();
+        //LOG(INFO) << "Lidar Loc计算相对pose: " << last_abs_pose_.translation().transpose() << " "
+                //   << current_pose_esti.translation().transpose() << " "
+                //   << (last_abs_pose_.inverse() * current_pose_esti).translation().transpose();
         lo_reliable_ = false;
         lo_reliable_cnt_ = 10;
         valid = false;
@@ -797,7 +796,7 @@ bool LidarLoc::Localize(SE3& pose, double& confidence, CloudPtr input, CloudPtr 
     Eigen::Matrix4f guess_pose = pose.matrix().cast<float>();
 
     if (pcl_ndt_->getInputTarget() == nullptr) {
-        LOG(INFO) << "lidar loc target is null, skip";
+        //LOG(INFO) << "lidar loc target is null, skip";
         return false;
     }
 
@@ -836,10 +835,10 @@ bool LidarLoc::Localize(SE3& pose, double& confidence, CloudPtr input, CloudPtr 
         Eigen::AngleAxisf angle_axis(rotation_diff);
         float a = angle_axis.angle();
         float d = (trans.block<3, 1>(0, 3) - adjust_trans.block<3, 1>(0, 3)).norm();
-        LOG(INFO) << "icp ajust d: " << d << ", a: " << a;
+        //LOG(INFO) << "icp ajust d: " << d << ", a: " << a;
 
         if (pcl_icp_->hasConverged() && std::fabs(d) <= 0.05 && std::fabs(a) <= 0.05) {
-            LOG(INFO) << "icp ajust trans set success";
+            //LOG(INFO) << "icp ajust trans set success";
             trans = adjust_trans;
         }
     }
@@ -850,7 +849,7 @@ bool LidarLoc::Localize(SE3& pose, double& confidence, CloudPtr input, CloudPtr 
     q_3d.normalize();
     pose = SE3(q_3d, t_3d);
 
-    LOG(INFO) << "confidence: " << confidence << ", t: " << t_3d.transpose() << ", succ: " << loc_success;
+    //LOG(INFO) << "confidence: " << confidence << ", t: " << t_3d.transpose() << ", succ: " << loc_success;
 
     return loc_success;
 }
@@ -858,7 +857,7 @@ bool LidarLoc::Localize(SE3& pose, double& confidence, CloudPtr input, CloudPtr 
 bool LidarLoc::CheckStatic(double timestamp) {
     if (parking_) {
         // if (current_vel_b_.norm() < common::options::lo::parking_speed) {
-        // LOG(INFO) << "car is in static mode";
+        // //LOG(INFO) << "car is in static mode";
         static_count_++;
         if (static_count_ >= lo::parking_count) {
             static_count_ = 0;
@@ -892,7 +891,7 @@ bool LidarLoc::AssignLOPose(double timestamp) {
     NavState best_match;
     // 无法拿到最新的，插值结果都是外推出来的，和真实有时偏差会很大（╯﹏╰）
     // if (!lo_pose_queue_.empty()) {
-    //     LOG(INFO) << "lo interp: " << timestamp << " " << lo_pose_queue_.back().timestamp_ << " "
+    //     //LOG(INFO) << "lo interp: " << timestamp << " " << lo_pose_queue_.back().timestamp_ << " "
     //               << lo_pose_queue_.back().pose_.translation().transpose();
     // }
 
@@ -936,7 +935,7 @@ bool LidarLoc::AssignDRPose(double timestamp) {
 
 void LidarLoc::Finish() {
     if (map_) {
-        LOG(INFO) << "saving maps";
+        //LOG(INFO) << "saving maps";
         update_map_quit_ = true;
         update_map_thread_.join();
 
@@ -944,7 +943,7 @@ void LidarLoc::Finish() {
         if (options_.map_option_.policy_ == TiledMap::DynamicCloudPolicy::PERSISTENT &&
             options_.map_option_.save_dyn_when_quit_ && !has_set_pose_) {
             map_->SaveToBin(true);
-            LOG(INFO) << "dynamic maps saved";
+            //LOG(INFO) << "dynamic maps saved";
         }
     }
 }

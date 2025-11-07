@@ -3,7 +3,9 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
+
+//using namespace google::logging::internal;
 
 #include "core/lio/laser_mapping.h"
 #include "core/loop_closing/loop_closing.h"
@@ -11,18 +13,20 @@
 #include "wrapper/bag_io.h"
 #include "wrapper/ros_utils.h"
 
+//using namespace google::logging::internal;
+
 DEFINE_string(input_bag, "", "输入数据包");
 DEFINE_string(config, "./config/default.yaml", "配置文件");
 
 /// 运行一个LIO前端，带可视化
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
 
     google::ParseCommandLineFlags(&argc, &argv, true);
     if (FLAGS_input_bag.empty()) {
-        LOG(ERROR) << "未指定输入数据";
+        //LOG(ERROR) << "未指定输入数据";
         return -1;
     }
 
@@ -32,7 +36,7 @@ int main(int argc, char** argv) {
 
     LaserMapping lio;
     if (!lio.Init(FLAGS_config)) {
-        LOG(ERROR) << "failed to init lio";
+        //LOG(ERROR) << "failed to init lio";
         return -1;
     };
 
@@ -52,7 +56,7 @@ int main(int argc, char** argv) {
                           return true;
                       })
         .AddPointCloud2Handle("points_raw",
-                              [&lio, &cur_kf, &loop](sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
+                              [&lio, &cur_kf, &loop](sensor_msgs::PointCloud2ConstPtr cloud) {
                                   lio.ProcessPointCloud2(cloud);
                                   lio.Run();
 
@@ -71,7 +75,7 @@ int main(int argc, char** argv) {
 
     ui->Quit();
 
-    LOG(INFO) << "done";
+    //LOG(INFO) << "done";
 
     return 0;
 }

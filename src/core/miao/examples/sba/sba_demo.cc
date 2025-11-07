@@ -152,19 +152,19 @@ class Sample {
 };
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     using namespace lightning::miao;
     Optimizer optimizer;
     if (FLAGS_dense) {
-        LOG(INFO) << "Use dense Solver";
+        //LOG(INFO) << "Use dense Solver";
         SetupOptimizer<6, 3>(optimizer, OptimizerConfig(AlgorithmType::LEVENBERG_MARQUARDT,
                                                         LinearSolverType::LINEAR_SOLVER_DENSE, true));
     } else {
-        LOG(INFO) << "Use eigen sparse Solver";
+        //LOG(INFO) << "Use eigen sparse Solver";
         SetupOptimizer<6, 3>(optimizer, OptimizerConfig(AlgorithmType::LEVENBERG_MARQUARDT,
                                                         LinearSolverType::LINEAR_SOLVER_SPARSE_EIGEN, false));
     }
@@ -294,14 +294,14 @@ int main(int argc, char** argv) {
         },
         "Optimize");
 
-    LOG(INFO) << "Point error before optimisation (inliers only): " << sqrt(sum_diff2 / inliers.size());
+    //LOG(INFO) << "Point error before optimisation (inliers only): " << sqrt(sum_diff2 / inliers.size());
     sum_diff2 = 0;
 
     for (auto it : pointid_2_trueid) {
         auto v_p = std::dynamic_pointer_cast<VertexPointXYZ>(optimizer.GetVertex(it.first));
 
         if (v_p == nullptr) {
-            LOG(ERROR) << "Vertex " << it.first << "is not a PointXYZ!";
+            //LOG(ERROR) << "Vertex " << it.first << "is not a PointXYZ!";
             exit(-1);
         }
 
@@ -313,7 +313,7 @@ int main(int argc, char** argv) {
         sum_diff2 += diff.dot(diff);
     }
 
-    LOG(INFO) << "Point error after optimisation (inliers only): " << sqrt(sum_diff2 / inliers.size());
+    //LOG(INFO) << "Point error after optimisation (inliers only): " << sqrt(sum_diff2 / inliers.size());
     Timer::PrintAll();
 
     return 0;

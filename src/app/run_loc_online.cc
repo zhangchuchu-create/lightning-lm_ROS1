@@ -3,37 +3,41 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+
+//using namespace google::logging::internal;
 
 #include "core/system/loc_system.h"
 #include "ui/pangolin_window.h"
 #include "wrapper/ros_utils.h"
 
+//using namespace google::logging::internal;
+
 DEFINE_string(config, "./config/default.yaml", "配置文件");
 
 /// 运行定位的测试
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
 
     google::ParseCommandLineFlags(&argc, &argv, true);
     using namespace lightning;
 
-    rclcpp::init(argc, argv);
+    ros::init(argc, argv, "lightning_loc");
 
     LocSystem::Options opt;
     LocSystem loc(opt);
 
     if (!loc.Init(FLAGS_config)) {
-        LOG(ERROR) << "failed to init loc";
+        //LOG(ERROR) << "failed to init loc";
     }
 
     /// 默认起点开始定位
+    //修改成前方10m出定位
     loc.SetInitPose(SE3());
     loc.Spin();
 
-    rclcpp::shutdown();
+    ros::shutdown();
 
     return 0;
 }

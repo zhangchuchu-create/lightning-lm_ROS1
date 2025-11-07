@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -132,7 +132,7 @@ void AsyncMessageProcess<T>::AddMessage(const T& msg) {
 
     msg_buffer_.push_back(msg);
     while (msg_buffer_.size() > max_size_) {
-        LOG(ERROR) << name_ << " exceeds largest size: " << max_size_;
+        //LOG(ERROR) << name_ << " exceeds largest size: " << max_size_;
         msg_buffer_.pop_front();
     }
 

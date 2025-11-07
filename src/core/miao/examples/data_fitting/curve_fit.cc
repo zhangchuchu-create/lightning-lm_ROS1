@@ -53,9 +53,9 @@ DEFINE_int32(max_iterations, 10, "number of iterations");
 DEFINE_bool(verbose, true, "Verbose output");
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     // generate random data
@@ -108,13 +108,13 @@ int main(int argc, char** argv) {
         "optimization");
 
     // print out the result
-    LOG(INFO) << "Target curve";
-    LOG(INFO) << "a * exp(-lambda * x) + b";
-    LOG(INFO) << "Iterative least squares solution";
-    LOG(INFO) << "a      = " << params->Estimate()(0);
-    LOG(INFO) << "b      = " << params->Estimate()(1);
-    LOG(INFO) << "lambda = " << params->Estimate()(2);
-    LOG(INFO) << "real abc: " << a << ", " << b << ", " << lambda;
+    //LOG(INFO) << "Target curve";
+    //LOG(INFO) << "a * exp(-lambda * x) + b";
+    //LOG(INFO) << "Iterative least squares solution";
+    //LOG(INFO) << "a      = " << params->Estimate()(0);
+    //LOG(INFO) << "b      = " << params->Estimate()(1);
+    //LOG(INFO) << "lambda = " << params->Estimate()(2);
+    //LOG(INFO) << "real abc: " << a << ", " << b << ", " << lambda;
 
     miao::Timer::PrintAll();
 

@@ -3,7 +3,6 @@
 #ifndef FASTER_LIO_IMU_PROCESSING_H
 #define FASTER_LIO_IMU_PROCESSING_H
 
-#include <glog/logging.h>
 #include <cmath>
 #include <deque>
 #include <fstream>
@@ -100,7 +99,16 @@ inline void ImuProcess::Reset() {
 
 inline void ImuProcess::SetExtrinsic(const Vec3d &transl, const Mat3d &rot) {
     t_lidar_mu_ = transl;
-    R_lidar_imu_ = rot;
+    
+    // 对旋转矩阵进行正交化，避免数值精度导致的 Sophus 检查失败
+    // 使用 SVD: R = U * S * V^T, 正交化后 R_orth = U * V^T
+    Eigen::JacobiSVD<Mat3d> svd(rot, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    R_lidar_imu_ = svd.matrixU() * svd.matrixV().transpose();
+    
+    // 确保行列式为正（右手坐标系）
+    if (R_lidar_imu_.determinant() < 0) {
+        R_lidar_imu_ = svd.matrixU() * Vec3d(1, 1, -1).asDiagonal() * svd.matrixV().transpose();
+    }
 }
 
 inline void ImuProcess::SetGyrCov(const Vec3d &scaler) { cov_gyr_scale_ = scaler; }
@@ -149,7 +157,18 @@ inline void ImuProcess::IMUInit(const MeasureGroup &meas, ESKF &kf_state, int &N
     init_state.grav_ = S2(-mean_acc_ / mean_acc_.norm() * G_m_s2);
     init_state.bg_ = mean_gyr_;
     init_state.offset_t_lidar_ = t_lidar_mu_;
-    init_state.offset_R_lidar_ = R_lidar_imu_;
+    
+    // 对 R_lidar_imu_ 进行正交化，避免数值精度问题
+    // 使用 SVD 分解: R = U * S * V^T，正交化后为 R_orth = U * V^T
+    Eigen::JacobiSVD<Mat3d> svd(R_lidar_imu_, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Mat3d R_orthogonal = svd.matrixU() * svd.matrixV().transpose();
+    
+    // 确保行列式为正（右手坐标系）
+    if (R_orthogonal.determinant() < 0) {
+        R_orthogonal = svd.matrixU() * Vec3d(1, 1, -1).asDiagonal() * svd.matrixV().transpose();
+    }
+    
+    init_state.offset_R_lidar_ = SO3(R_orthogonal);
     kf_state.ChangeX(init_state);
 
     auto init_P = kf_state.GetP();
@@ -209,7 +228,7 @@ inline void ImuProcess::UndistortPcl(const MeasureGroup &meas, ESKF &kf_state, C
         gyro = angvel_avr;
 
         if (dt > 0.1) {
-            LOG(ERROR) << "get abnormal dt: " << dt;
+            //LOG(ERROR) << "get abnormal dt: " << dt;
             kf_state.SetTime((*it_imu)->timestamp);
             break;
         }
@@ -220,9 +239,9 @@ inline void ImuProcess::UndistortPcl(const MeasureGroup &meas, ESKF &kf_state, C
         Q_.block<3, 3>(9, 9).diagonal() = cov_bias_acc_;
         kf_state.Predict(dt, Q_, gyro, acc);
 
-        // LOG(INFO) << "gyro: " << gyro.transpose() << ", dt: " << dt;
+        // //LOG(INFO) << "gyro: " << gyro.transpose() << ", dt: " << dt;
 
-        // LOG(INFO) << "acc: " << acc.transpose() << " grav: " << kf_state.GetX().grav_.vec_.norm()
+        // //LOG(INFO) << "acc: " << acc.transpose() << " grav: " << kf_state.GetX().grav_.vec_.norm()
         //           << ", vel: " << kf_state.GetX().vel_.transpose() << ", dt: " << dt;
 
         /* save the poses at each IMU measurements */
@@ -315,9 +334,9 @@ inline void ImuProcess::Process(const MeasureGroup &meas, ESKF &kf_state, CloudP
 
             cov_acc_ = cov_acc_scale_;
             cov_gyr_ = cov_gyr_scale_;
-            LOG(INFO) << "imu init done, bg: " << imu_state.bg_.transpose() << ", ba: " << imu_state.ba_.transpose();
+            //LOG(INFO) << "imu init done, bg: " << imu_state.bg_.transpose() << ", ba: " << imu_state.ba_.transpose();
         } else {
-            LOG(INFO) << "waiting for imu init ... " << init_iter_num_;
+            //LOG(INFO) << "waiting for imu init ... " << init_iter_num_;
         }
 
         return;

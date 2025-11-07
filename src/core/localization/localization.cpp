@@ -1,5 +1,6 @@
 #include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <iomanip>
 
 #include "core/localization/lidar_loc/lidar_loc.h"
 #include "core/localization/localization.h"
@@ -29,7 +30,7 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
 
     lio_ = std::make_shared<LaserMapping>(opt_lio);
     if (!lio_->Init(yaml_path)) {
-        LOG(ERROR) << "failed to init lio";
+        //LOG(ERROR) << "failed to init lio";
         return false;
     }
 
@@ -83,7 +84,7 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
     pgo_->SetHighFrequencyGlobalOutputHandleFunction([this](const LocalizationResult& res) {
         if (loc_result_.timestamp_ > 0) {
             double loc_fps = 1.0 / (res.timestamp_ - loc_result_.timestamp_);
-            LOG_EVERY_N(INFO, 10) << "loc fps: " << loc_fps;
+            // LOG_EVERY_N(INFO, 10) << "loc fps: " << loc_fps;
         }
 
         loc_result_ = res;
@@ -106,33 +107,59 @@ bool Localization::Init(const std::string& yaml_path, const std::string& global_
     preprocess_->NumScans() = yaml.GetValue<int>("fasterlio", "scan_line");
     preprocess_->PointFilterNum() = yaml.GetValue<int>("fasterlio", "point_filter_num");
 
-    LOG(INFO) << "lidar_type " << lidar_type;
+    //LOG(INFO) << "lidar_type " << lidar_type;
     if (lidar_type == 1) {
         preprocess_->SetLidarType(LidarType::AVIA);
-        LOG(INFO) << "Using AVIA Lidar";
+        //LOG(INFO) << "Using AVIA Lidar";
     } else if (lidar_type == 2) {
         preprocess_->SetLidarType(LidarType::VELO32);
-        LOG(INFO) << "Using Velodyne 32 Lidar";
+        //LOG(INFO) << "Using Velodyne 32 Lidar";
     } else if (lidar_type == 3) {
         preprocess_->SetLidarType(LidarType::OUST64);
-        LOG(INFO) << "Using OUST 64 Lidar";
+        //LOG(INFO) << "Using OUST 64 Lidar";
     } else {
-        LOG(WARNING) << "unknown lidar_type";
+        //LOG(WARNING) << "unknown lidar_type";
     }
+
+    std::cout << "定位系统初始化完成! lidar_loc_=" << (lidar_loc_ != nullptr) 
+              << ", lio_=" << (lio_ != nullptr) 
+              << ", pgo_=" << (pgo_ != nullptr) << std::endl;
 
     return true;
 }
 
-void Localization::ProcessLidarMsg(const sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
+void Localization::ProcessLidarMsg(const sensor_msgs::PointCloud2ConstPtr cloud) {
     UL lock(global_mutex_);
     if (lidar_loc_ == nullptr || lio_ == nullptr || pgo_ == nullptr) {
+        static bool error_printed = false;
+        if (!error_printed) {
+            std::cerr << "错误: 定位模块未初始化! lidar_loc_=" << (lidar_loc_ != nullptr) 
+                      << ", lio_=" << (lio_ != nullptr) 
+                      << ", pgo_=" << (pgo_ != nullptr) << std::endl;
+            error_printed = true;
+        }
         return;
     }
 
     // 串行模式
     CloudPtr laser_cloud(new PointCloudType);
     preprocess_->Process(cloud, laser_cloud);
-    laser_cloud->header.stamp = cloud->header.stamp.sec * 1e9 + cloud->header.stamp.nanosec;
+    laser_cloud->header.stamp = cloud->header.stamp.toNSec();
+
+    static int process_count = 0;
+    static double first_cloud_time = 0;
+    if (first_cloud_time == 0) {
+        first_cloud_time = laser_cloud->header.stamp * 1e-9;
+        std::cout << "第一帧点云时间戳: " << std::fixed << std::setprecision(6) 
+                  << first_cloud_time << std::endl;
+    }
+    
+    if (++process_count % 50 == 0) {
+        double cloud_time = laser_cloud->header.stamp * 1e-9;
+        std::cout << "ProcessLidarMsg: 已接收 " << process_count 
+                  << " 帧，预处理后点数: " << laser_cloud->size()
+                  << "，时间戳: " << cloud_time << std::endl;
+    }
 
     if (options_.online_mode_) {
         lidar_odom_proc_cloud_.AddMessage(laser_cloud);
@@ -141,16 +168,23 @@ void Localization::ProcessLidarMsg(const sensor_msgs::msg::PointCloud2::SharedPt
     }
 }
 
-void Localization::ProcessLivoxLidarMsg(const livox_ros_driver2::msg::CustomMsg::SharedPtr cloud) {
+void Localization::ProcessLivoxLidarMsg(const livox_ros_driver::CustomMsgConstPtr cloud) {
     UL lock(global_mutex_);
     if (lidar_loc_ == nullptr || lio_ == nullptr || pgo_ == nullptr) {
+        static bool error_printed = false;
+        if (!error_printed) {
+            std::cerr << "错误: 定位模块未初始化! lidar_loc_=" << (lidar_loc_ != nullptr) 
+                      << ", lio_=" << (lio_ != nullptr) 
+                      << ", pgo_=" << (pgo_ != nullptr) << std::endl;
+            error_printed = true;
+        }
         return;
     }
 
     // 串行模式
     CloudPtr laser_cloud(new PointCloudType);
     preprocess_->Process(cloud, laser_cloud);
-    laser_cloud->header.stamp = cloud->header.stamp.sec * 1e9 + cloud->header.stamp.nanosec;
+    laser_cloud->header.stamp = cloud->header.stamp.toNSec();
 
     if (options_.online_mode_) {
         lidar_odom_proc_cloud_.AddMessage(laser_cloud);
@@ -160,14 +194,31 @@ void Localization::ProcessLivoxLidarMsg(const livox_ros_driver2::msg::CustomMsg:
 }
 
 void Localization::LidarOdomProcCloud(CloudPtr cloud) {
+    static int cloud_count = 0;
+    static bool first_fail_printed = false;
     if (lio_ == nullptr) {
+        std::cerr << "LIO module not initialized!" << std::endl;
         return;
     }
 
     /// NOTE: 在NCLT这种数据集中，lio内部是有缓存的，它拿到的点云不一定是最新时刻的点云
     lio_->ProcessPointCloud2(cloud);
     if (!lio_->Run()) {
+        if (!first_fail_printed) {
+            std::cerr << "警告: LIO Run() 返回 false！可能原因：" << std::endl;
+            std::cerr << "  1. IMU 数据不足（需要至少200个IMU数据点来初始化）" << std::endl;
+            std::cerr << "  2. IMU 和点云时间戳不同步" << std::endl;
+            std::cerr << "  3. 点云数据质量问题" << std::endl;
+            first_fail_printed = true;
+        }
+        if (++cloud_count % 50 == 0) {
+            std::cout << "LIO Run() 仍返回 false，已处理 " << cloud_count << " 帧" << std::endl;
+        }
         return;
+    }
+    
+    if (++cloud_count % 10 == 0) {
+        std::cout << "✓ LIO 成功运行，已处理 " << cloud_count << " 帧" << std::endl;
     }
 
     auto lo_state = lio_->GetState();
@@ -175,7 +226,7 @@ void Localization::LidarOdomProcCloud(CloudPtr cloud) {
     lidar_loc_->ProcessLO(lo_state);
     pgo_->ProcessLidarOdom(lo_state);
 
-    // LOG(INFO) << "LO pose: " << std::setprecision(12) << lo_state.timestamp_ << " "
+    // //LOG(INFO) << "LO pose: " << std::setprecision(12) << lo_state.timestamp_ << " "
     //           << lo_state.GetPose().translation().transpose();
 
     /// 获得lio的关键帧
@@ -213,9 +264,9 @@ void Localization::LidarLocProcCloud(CloudPtr scan_undist) {
     }
 
     if (loc_state_callback_) {
-        auto loc_state = std::make_shared<std_msgs::msg::Int32>();
+        auto loc_state = std::make_shared<std_msgs::Int32>();
         loc_state->data = static_cast<int>(res.status_);
-        LOG(INFO) << "loc_state: " << loc_state->data;
+        //LOG(INFO) << "loc_state: " << loc_state->data;
         loc_state_callback_(*loc_state);
     }
 }
@@ -227,11 +278,24 @@ void Localization::ProcessIMUMsg(IMUPtr imu) {
         return;
     }
 
+    static int imu_count = 0;
+    static double first_imu_time = 0;
+    if (first_imu_time == 0) {
+        first_imu_time = imu->timestamp;
+        std::cout << "第一个 IMU 时间戳: " << std::fixed << std::setprecision(6) 
+                  << imu->timestamp << std::endl;
+    }
+    
     double this_imu_time = imu->timestamp;
     if (last_imu_time_ > 0 && this_imu_time < last_imu_time_) {
-        LOG(WARNING) << "IMU 时间异常：" << this_imu_time << ", last: " << last_imu_time_;
+        std::cerr << "警告: IMU 时间异常：" << this_imu_time << ", last: " << last_imu_time_ << std::endl;
     }
     last_imu_time_ = this_imu_time;
+    
+    if (++imu_count == 200) {
+        std::cout << "已接收 200 个 IMU 数据，时间范围: " 
+                  << first_imu_time << " ~ " << this_imu_time << std::endl;
+    }
 
     /// 里程计处理IMU
     lio_->ProcessIMU(imu);
@@ -254,7 +318,7 @@ void Localization::ProcessIMUMsg(IMUPtr imu) {
 
     /// 如果没有odm, 用lio替代DR
 
-    // LOG(INFO) << "dr state: " << std::setprecision(12) << dr_state.timestamp_ << " "
+    // //LOG(INFO) << "dr state: " << std::setprecision(12) << dr_state.timestamp_ << " "
     //           << dr_state.GetPose().translation().transpose()
     //           << ", q=" << dr_state.GetPose().unit_quaternion().coeffs().transpose();
 
@@ -270,7 +334,7 @@ void Localization::ProcessIMUMsg(IMUPtr imu) {
 //     }
 //     double this_odom_time = ToSec(odom_msg->header.stamp);
 //     if (last_odom_time_ > 0 && this_odom_time < last_odom_time_) {
-//         LOG(WARNING) << "Odom Time Abnormal:" << this_odom_time << ", last: " << last_odom_time_;
+//         //LOG(WARNING) << "Odom Time Abnormal:" << this_odom_time << ", last: " << last_odom_time_;
 //     }
 //     last_odom_time_ = this_odom_time;
 //

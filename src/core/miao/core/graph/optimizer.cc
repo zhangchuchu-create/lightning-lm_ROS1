@@ -9,7 +9,7 @@
 #include "core/opti_algo/optimization_algorithm.h"
 #include "core/robust_kernel/robust_kernel.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <execution>
 
 namespace lightning::miao {
@@ -36,7 +36,7 @@ void Optimizer::InitFromRaw(int level) {
     }
 
     if (edges_.empty()) {
-        LOG(WARNING) << "Attempt to initialize an empty graph";
+        //LOG(WARNING) << "Attempt to initialize an empty graph";
         return;
     }
 
@@ -87,7 +87,7 @@ void Optimizer::InitFromLast(int level) {
     /// 检查所有顶点都不应该有marg的部分
     for (const auto &v : vertices_) {
         if (v.second->Marginalized()) {
-            LOG(ERROR) << "should not use marginalization in incremental mode. ";
+            //LOG(ERROR) << "should not use marginalization in incremental mode. ";
             return;
         }
     }
@@ -154,7 +154,7 @@ void Optimizer::SortVectorContainers() {
 
 int Optimizer::Optimize(int iterations) {
     if (iv_map_.empty()) {
-        LOG(WARNING) << "0 vertices to Optimize, maybe forgot to call "
+        //LOG(WARNING) << "0 vertices to Optimize, maybe forgot to call "
                         "InitializeOptimization()";
         /// NOTE: 这个可以帮忙调，不用每次让用户调
         return -1;
@@ -165,7 +165,7 @@ int Optimizer::Optimize(int iterations) {
 
     ok = algorithm_->Init();
     if (!ok) {
-        LOG(ERROR) << "Error while initializing";
+        //LOG(ERROR) << "Error while initializing";
         return -1;
     }
 
@@ -180,8 +180,8 @@ int Optimizer::Optimize(int iterations) {
         double this_chi2 = ActiveRobustChi2();
 
         if (Verbose()) {
-            LOG(INFO) << "iteration= " << i << "\t chi2= " << std::fixed << this_chi2
-                      << "\t edges= " << active_edges_.size();
+            //LOG(INFO) << "iteration= " << i << "\t chi2= " << std::fixed << this_chi2
+                    //   << "\t edges= " << active_edges_.size();
         }
 
         if (i > 0 && fabs(this_chi2 - chi2) < config_.eps_chi2_) {
@@ -276,7 +276,7 @@ void Optimizer::Update(const double *update) {
     // update the graph by calling oplus on the vertices
     for (const auto &v : iv_map_) {
         Eigen::Map<const lightning::Vector6> upd(update);
-        // LOG(INFO) << "vert: " << v->GetId() << ", upd: " << upd.transpose();
+        // //LOG(INFO) << "vert: " << v->GetId() << ", upd: " << upd.transpose();
 
         v->Oplus(update);
         update += v->Dimension();
@@ -312,7 +312,7 @@ bool Optimizer::AddVertex(std::shared_ptr<Vertex> v) {
             }
 
             if (verbose_) {
-                LOG(INFO) << "replacing new vertex " << v->GetId() << " with old " << v_remove->GetId();
+                //LOG(INFO) << "replacing new vertex " << v->GetId() << " with old " << v_remove->GetId();
             }
 
             /// 先remove active edges

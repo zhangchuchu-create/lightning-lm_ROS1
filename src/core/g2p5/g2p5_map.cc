@@ -242,13 +242,13 @@ void G2P5Map::ReleaseResources() {
     malloc_trim(0);
 }
 
-nav_msgs::msg::OccupancyGrid G2P5Map::ToROS() {
-    nav_msgs::msg::OccupancyGrid occu_map;
+nav_msgs::OccupancyGrid G2P5Map::ToROS() {
+    nav_msgs::OccupancyGrid occu_map;
     int image_width = grid_size_x_ * sub_grid_width_;
     int image_height = grid_size_y_ * sub_grid_width_;
-    occu_map.info.resolution = static_cast<nav_msgs::msg::MapMetaData::_resolution_type>(options_.resolution_);
-    occu_map.info.width = static_cast<nav_msgs::msg::MapMetaData::_width_type>(image_width);
-    occu_map.info.height = static_cast<nav_msgs::msg::MapMetaData::_width_type>(image_height);
+    occu_map.info.resolution = options_.resolution_;
+    occu_map.info.width = image_width;
+    occu_map.info.height = image_height;
     occu_map.info.origin.position.x = min_x_;
     occu_map.info.origin.position.y = min_y_;
 

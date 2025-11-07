@@ -99,7 +99,7 @@ void G2P5::RenderBack() {
         for (; cur_kf != all_keyframes.end(); ++cur_kf) {
             AddKfToMap({*cur_kf}, backend_map_);
             if (backend_redraw_flag_) {
-                LOG(INFO) << "backend redraw triggered in process, abort";
+                //LOG(INFO) << "backend redraw triggered in process, abort";
                 abort = true;
                 break;
             }
@@ -158,7 +158,7 @@ void G2P5::RenderBack() {
         is_busy_ = false;
     }
 
-    LOG(INFO) << "backend render quit";
+    //LOG(INFO) << "backend render quit";
 }
 
 bool G2P5::ResizeMap(const std::vector<Keyframe::Ptr> &kfs, G2P5MapPtr &map) {
@@ -243,7 +243,7 @@ bool G2P5::ResizeMap(const std::vector<Keyframe::Ptr> &kfs, G2P5MapPtr &map) {
         max_y = static_cast<int>((ceil)(max_y / r)) * r;
         map->Resize(min_x, min_y, max_x, max_y);
 
-        LOG(INFO) << "map resized to " << min_x << ", " << min_y << ", " << max_x << ", " << max_y;
+        //LOG(INFO) << "map resized to " << min_x << ", " << min_y << ", " << max_x << ", " << max_y;
     }
 
     return true;
@@ -262,7 +262,7 @@ bool G2P5::AddKfToMap(const std::vector<Keyframe::Ptr> &kfs, G2P5MapPtr &map) {
 
 G2P5MapPtr G2P5::GetNewestMap() {
     UL lock{newest_map_mutex_};
-    LOG(INFO) << "getting newest map";
+    //LOG(INFO) << "getting newest map";
     if (newest_map_ == nullptr) {
         return nullptr;
     }
@@ -278,7 +278,7 @@ void G2P5::Convert3DTo2DScan(Keyframe::Ptr kf, G2P5MapPtr &map) {
             floor_coeffs_ = Vec4d(0, 0, 1, -options_.default_floor_height_);
         } else {
             if (options_.verbose_) {
-                LOG(INFO) << "floor coeffs: " << floor_coeffs_.transpose();
+                //LOG(INFO) << "floor coeffs: " << floor_coeffs_.transpose();
             }
         }
     } else {
@@ -353,7 +353,7 @@ void G2P5::Convert3DTo2DScan(Keyframe::Ptr kf, G2P5MapPtr &map) {
     //     pcl::io::savePCDFile("./data/obs.pcd", *obstacle_cloud);
     // }
 
-    // LOG(INFO) << "valid obs: " << cnt_valid << ", total: " << cloud->size();
+    // //LOG(INFO) << "valid obs: " << cnt_valid << ", total: " << cloud->size();
 
     std::vector<double> floor_esti_data;  // 地面高度估计值
 
@@ -452,7 +452,7 @@ bool G2P5::DetectPlaneCoeffs(Keyframe::Ptr kf) {
     cloud->is_dense = false;
 
     if (cloud->size() < 200) {
-        // LOG(ERROR) << "not enough points cloud->size(): " << cloud->size();
+        // //LOG(ERROR) << "not enough points cloud->size(): " << cloud->size();
         return false;
     }
 
@@ -464,12 +464,12 @@ bool G2P5::DetectPlaneCoeffs(Keyframe::Ptr kf) {
     seg.segment(*inliers, *coefficients);
 
     if (coefficients->values[2] < 0.99) {
-        LOG(ERROR) << "floor is not horizontal. ";
+        //LOG(ERROR) << "floor is not horizontal. ";
         return false;
     }
 
     if (inliers->indices.size() < 100) {
-        LOG(ERROR) << "cannot get enough points on floor: " << inliers->indices.size();
+        //LOG(ERROR) << "cannot get enough points on floor: " << inliers->indices.size();
         return false;
     }
 

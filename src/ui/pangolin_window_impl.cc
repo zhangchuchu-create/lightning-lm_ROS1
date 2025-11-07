@@ -1,4 +1,3 @@
-#include <pangolin/display/default_font.h>
 #include <string>
 #include <thread>
 
@@ -53,7 +52,7 @@ void PangolinWindowImpl::Reset(const std::vector<Keyframe::Ptr> &keyframes) {
     for (; i < keyframes.size(); ++i) {
         const auto &keyframe = keyframes.at(i);
         current_scan_ui_ = std::make_shared<ui::UiCloud>();
-        CloudPtr tmp_cloud = std::make_shared<PointCloudType>(*(keyframe->GetCloud()));
+        CloudPtr tmp_cloud = boost::make_shared<PointCloudType>(*(keyframe->GetCloud()));
         current_scan_ui_->SetCloud(math::VoxelGrid(tmp_cloud, 0.5), keyframe->GetOptPose());
         current_scan_ui_->SetRenderColor(ui::UiCloud::UseColor::HEIGHT_COLOR);
 
@@ -419,8 +418,7 @@ void PangolinWindowImpl::AllocateBuffer() {
         "Welcome to SAD.UI. Open source code: https://github.com/gaoxiang12/slam_in_autonomous_driving. All right "
         "reserved.\n"
         "Red: newest IMU pose, yellow: lidar scan pose");
-    auto &font = pangolin::default_font();
-    gltext_label_global_ = font.Text(global_text);
+    gltext_label_global_ = pangolin::GlFont::I().Text(global_text);
 }
 
 void PangolinWindowImpl::ReleaseBuffer() {}

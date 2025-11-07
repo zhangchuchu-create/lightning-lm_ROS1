@@ -9,7 +9,7 @@
 #include "common/point_def.h"
 #include "common/std_types.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 
 namespace lightning {
 
@@ -45,7 +45,7 @@ class MessageSync {
         UL lock(imu_mutex_);
         double timestamp = msg->timestamp;
         if (timestamp < last_timestamp_imu_) {
-            LOG(WARNING) << "imu loop back, time difference is " << last_timestamp_imu_ - timestamp;
+            //LOG(WARNING) << "imu loop back, time difference is " << last_timestamp_imu_ - timestamp;
             return;
         }
 
@@ -64,7 +64,7 @@ class MessageSync {
         UL lock(odom_mutex_);
         double timestamp = msg->timestamp_;
         if (timestamp < last_timestamp_odom_) {
-            LOG(WARNING) << "odom (enc) loop back, time difference is " << last_timestamp_odom_ - timestamp;
+            //LOG(WARNING) << "odom (enc) loop back, time difference is " << last_timestamp_odom_ - timestamp;
         }
 
         odom_buffer_.emplace_back(msg);

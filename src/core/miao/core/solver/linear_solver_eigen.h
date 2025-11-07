@@ -5,7 +5,7 @@
 #ifndef MIAO_LINEAR_SOLVER_EIGEN_H
 #define MIAO_LINEAR_SOLVER_EIGEN_H
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <Eigen/Sparse>
 
 #include "linear_solver_ccs.h"
@@ -100,7 +100,7 @@ class LinearSolverEigen : public LinearSolverCCS<MatrixType> {
         cholesky_.factorize(sparse_matrix_);
 
         if (cholesky_.info() != Eigen::Success) {  // the matrix is not positive definite
-            LOG(ERROR) << "error : Cholesky failure, solve failed---------------";
+            //LOG(ERROR) << "error : Cholesky failure, solve failed---------------";
             return false;
         }
         return true;

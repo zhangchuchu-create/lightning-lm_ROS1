@@ -43,7 +43,6 @@
 #include <Eigen/Cholesky>
 #include <Eigen/Dense>
 
-#include <glog/logging.h>
 
 #include "voxel_grid_covariance_omp.h"
 

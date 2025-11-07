@@ -11,7 +11,7 @@
 #include "utils/tuple_tools.h"
 #include "vertex.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 
 namespace lightning::miao {
 

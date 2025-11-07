@@ -13,7 +13,7 @@ bool PathExists(const std::string& file_path) {
 
 bool RemoveIfExist(const std::string& path) {
     if (PathExists(path)) {
-        // LOG(INFO) << "remove " << path;
+        // //LOG(INFO) << "remove " << path;
         system(("rm -f " + path).c_str());
         return true;
     }

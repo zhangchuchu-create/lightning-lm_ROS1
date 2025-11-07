@@ -52,7 +52,7 @@ void LoopClosing::Init(const std::string yaml_path) {
     }
 
     if (options_.online_mode_) {
-        LOG(INFO) << "loop closing module is running in online mode";
+        //LOG(INFO) << "loop closing module is running in online mode";
         kf_thread_.SetProcFunc([this](Keyframe::Ptr kf) { HandleKF(kf); });
         kf_thread_.SetName("handle loop closure");
         kf_thread_.Start();
@@ -79,7 +79,7 @@ void LoopClosing::HandleKF(Keyframe::Ptr kf) {
     DetectLoopCandidates();
 
     if (options_.verbose_) {
-        LOG(INFO) << "lc: get kf " << cur_kf_->GetID() << " candi: " << candidates_.size();
+        //LOG(INFO) << "lc: get kf " << cur_kf_->GetID() << " candi: " << candidates_.size();
     }
 
     // 计算回环位姿
@@ -103,7 +103,7 @@ void LoopClosing::DetectLoopCandidates() {
     }
 
     if (last_loop_kf_ && (cur_kf_->GetID() - last_loop_kf_->GetID()) <= options_.loop_kf_gap_) {
-        LOG(INFO) << "skip because last loop kf: " << last_loop_kf_->GetID();
+        //LOG(INFO) << "skip because last loop kf: " << last_loop_kf_->GetID();
         return;
     }
 
@@ -136,7 +136,7 @@ void LoopClosing::DetectLoopCandidates() {
     }
 
     if (options_.verbose_ && !candidates_.empty()) {
-        LOG(INFO) << "lc candi: " << candidates_.size();
+        //LOG(INFO) << "lc candi: " << candidates_.size();
     }
 }
 
@@ -150,21 +150,21 @@ void LoopClosing::ComputeLoopCandidates() {
     // 保存成功的候选
     std::vector<LoopCandidate> succ_candidates;
     for (const auto& lc : candidates_) {
-        LOG(INFO) << "candi " << lc.idx1_ << ", " << lc.idx2_ << " s: " << lc.ndt_score_;
+        //LOG(INFO) << "candi " << lc.idx1_ << ", " << lc.idx2_ << " s: " << lc.ndt_score_;
         if (lc.ndt_score_ > options_.ndt_score_th_) {
             succ_candidates.emplace_back(lc);
         }
     }
 
     if (options_.verbose_) {
-        LOG(INFO) << "success: " << succ_candidates.size() << "/" << candidates_.size();
+        //LOG(INFO) << "success: " << succ_candidates.size() << "/" << candidates_.size();
     }
 
     candidates_.swap(succ_candidates);
 }
 
 void LoopClosing::ComputeForCandidate(lightning::LoopCandidate& c) {
-    LOG(INFO) << "aligning " << c.idx1_ << " with " << c.idx2_;
+    //LOG(INFO) << "aligning " << c.idx1_ << " with " << c.idx2_;
     const int submap_idx_range = 40;
     auto kf1 = all_keyframes_.at(c.idx1_), kf2 = all_keyframes_.at(c.idx2_);
 
@@ -319,7 +319,7 @@ void LoopClosing::PoseOptimization() {
     }
 
     if (options_.verbose_) {
-        LOG(INFO) << "loop outliers: " << cnt_outliers << "/" << edge_loops_.size();
+        //LOG(INFO) << "loop outliers: " << cnt_outliers << "/" << edge_loops_.size();
     }
 
     /// get results
@@ -332,9 +332,9 @@ void LoopClosing::PoseOptimization() {
         loop_cb_();
     }
 
-    LOG(INFO) << "optimize finished, loops: " << edge_loops_.size();
+    //LOG(INFO) << "optimize finished, loops: " << edge_loops_.size();
 
-    // LOG(INFO) << "lc: cur kf " << cur_kf_->GetID() << ", opt: " << cur_kf_->GetOptPose().translation().transpose()
+    // //LOG(INFO) << "lc: cur kf " << cur_kf_->GetID() << ", opt: " << cur_kf_->GetOptPose().translation().transpose()
     //           << ", lio: " << cur_kf_->GetLIOPose().translation().transpose();
 }
 

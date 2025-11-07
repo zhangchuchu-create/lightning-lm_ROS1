@@ -11,6 +11,66 @@ endif ()
 set(CMAKE_BUILD_TYPE Release)
 
 # -------------------------------------------------------------
+# catkin
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    rospy
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    nav_msgs
+    std_srvs
+    tf
+    tf_conversions
+    pcl_conversions
+    pcl_ros
+    message_filters
+    visualization_msgs
+    message_generation
+    common_msgs
+    driver_msgs
+)
+
+# msg 和 srv
+file(GLOB_RECURSE MY_SRV_FILES srv/*.srv)
+
+add_service_files(
+    FILES
+    LocCmd.srv
+    SaveMap.srv
+)
+
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    nav_msgs
+)
+
+catkin_package(
+    CATKIN_DEPENDS
+    roscpp
+    rospy
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    nav_msgs
+    std_srvs
+    tf
+    tf_conversions
+    pcl_conversions
+    pcl_ros
+    message_filters
+    visualization_msgs
+    message_runtime
+    livox_ros_driver
+    
+    common_msgs
+    driver_msgs
+)
+
+# -------------------------------------------------------------
 # 导入第三方库，同时做一些全局编译选项配置
 add_definitions("-DPCL_NO_PRECOMPILE")
 
@@ -24,39 +84,22 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif ()
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+# Use catkin's default output directories for ROS compatibility
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 # set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/libs)
 # set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/libs)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/packages.cmake)
 
-# msg 和 srv
-set(MY_SRV_FILES "")
-set(SRC_DIR ${PROJECT_SOURCE_DIR}/srv)
-file(GLOB_RECURSE SRC_FILES ${SRC_DIR}/*.srv)
-foreach (SRC_FILE ${SRC_FILES})
-    file(RELATIVE_PATH REL_PATH ${SRC_DIR} ${SRC_FILE})
-    list(APPEND MY_SRV_FILES ${PROJECT_SOURCE_DIR}:srv/${REL_PATH})
-endforeach ()
-
-rosidl_generate_interfaces(${PROJECT_NAME}
-        ${MY_SRV_FILES}
-        ${MY_MSG_FILES}
-        ${MY_ACTION_FILES}
-        DEPENDENCIES std_msgs geometry_msgs sensor_msgs nav_msgs
-)
-
 include_directories(
-        ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp
+    ${catkin_INCLUDE_DIRS}
 )
 
 install(DIRECTORY config
-        DESTINATION lib/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-add_subdirectory(thirdparty/livox_ros_driver)
+#add_subdirectory(thirdparty/livox_ros_driver)
 
 add_subdirectory(src)
-
-ament_package()

@@ -3,7 +3,7 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <fstream>
 
 #include "core/graph/optimizer.h"
@@ -22,16 +22,16 @@ DEFINE_bool(use_PCG, false, "use PCG solver");
 DEFINE_int32(iterations, 100, "num of iterations");
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     using namespace lightning::miao;
 
     std::ifstream fin(FLAGS_g2o_file);
     if (!fin) {
-        LOG(ERROR) << "cannot load file: " << FLAGS_g2o_file;
+        //LOG(ERROR) << "cannot load file: " << FLAGS_g2o_file;
         return -1;
     }
 
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 
         if (name == "VERTEX_SE3:QUAT") {
             if (FLAGS_is_3d_pose == false) {
-                LOG(FATAL) << "get 3d pose, but you set a 2D problem.";
+                //LOG(FATAL) << "get 3d pose, but you set a 2D problem.";
             }
 
             int id = 0;
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
             vertices_3d.emplace_back(v);
         } else if (name == "VERTEX_SE2") {
             if (FLAGS_is_3d_pose == true) {
-                LOG(FATAL) << "get 2d pose, but you set a 3D problem.";
+                //LOG(FATAL) << "get 2d pose, but you set a 3D problem.";
             }
 
             int id = 0;
@@ -174,14 +174,14 @@ int main(int argc, char** argv) {
         }
     }
 
-    LOG(INFO) << "vert: " << optimizer->GetVertices().size() << ", edges: " << optimizer->GetEdges().size();
+    //LOG(INFO) << "vert: " << optimizer->GetVertices().size() << ", edges: " << optimizer->GetEdges().size();
     optimizer->InitializeOptimization();
     optimizer->SetVerbose(true);
 
     Timer::Evaluate([&]() { optimizer->Optimize(FLAGS_iterations); }, "optimize");
 
     /// TODO: save
-    LOG(INFO) << "saving graph to result.g2o";
+    //LOG(INFO) << "saving graph to result.g2o";
     std::ofstream fout("./result.g2o");
 
     for (const auto& v : vertices_3d) {
@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
     }
 
     fout.close();
-    LOG(INFO) << "graph saved. ";
+    //LOG(INFO) << "graph saved. ";
 
     miao::Timer::DumpIntoFile("./miao_pose.txt");
     Timer::PrintAll();

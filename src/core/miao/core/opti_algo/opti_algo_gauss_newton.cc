@@ -5,7 +5,7 @@
 #include "core/graph/optimizer.h"
 #include "core/solver/solver.h"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 
 #include <utility>
 
@@ -24,7 +24,7 @@ OptimizationAlgorithm::SolverResult OptimizationAlgorithmGaussNewton::Solve(int 
     if (iteration == 0) {  // built up the CCS structure, here due to easy time measure
         ok = solver_->BuildStructure();
         if (!ok) {
-            LOG(WARNING) << "Failure while building CCS structure";
+            //LOG(WARNING) << "Failure while building CCS structure";
             return OptimizationAlgorithm::SolverResult::Fail;
         }
     }

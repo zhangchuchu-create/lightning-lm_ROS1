@@ -3,7 +3,7 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 
 #include "core/graph/base_unary_edge.h"
 #include "core/graph/base_vertex.h"
@@ -79,9 +79,9 @@ DEFINE_int32(max_iterations, 10, "number of iterations");
 DEFINE_bool(verbose, true, "Verbose output");
 
 int main(int argc, char **argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     Vec2d center(4.0, 2.0);
@@ -124,10 +124,10 @@ int main(int argc, char **argv) {
         "Miao optimizer");
 
     // print out the result
-    LOG(INFO) << "Iterative least squares solution";
-    LOG(INFO) << "center of the circle " << circle->Estimate().head<2>().transpose();
-    LOG(INFO) << "radius of the cirlce " << circle->Estimate()(2);
-    LOG(INFO) << "error " << errorOfSolution(FLAGS_num_points, points, circle->Estimate());
+    //LOG(INFO) << "Iterative least squares solution";
+    //LOG(INFO) << "center of the circle " << circle->Estimate().head<2>().transpose();
+    //LOG(INFO) << "radius of the cirlce " << circle->Estimate()(2);
+    //LOG(INFO) << "error " << errorOfSolution(FLAGS_num_points, points, circle->Estimate());
 
     miao::Timer::Evaluate(
         [&]() {
@@ -146,10 +146,10 @@ int main(int argc, char **argv) {
             // calculate the radius of the circle given the solution so far
             solution(2) = sqrt(pow(solution(0), 2) + pow(solution(1), 2) - solution(2));
 
-            LOG(INFO) << "Linear least squares solution";
-            LOG(INFO) << "center of the circle " << solution.head<2>().transpose();
-            LOG(INFO) << "radius of the cirlce " << solution(2);
-            LOG(INFO) << "error " << errorOfSolution(FLAGS_num_points, points, solution);
+            //LOG(INFO) << "Linear least squares solution";
+            //LOG(INFO) << "center of the circle " << solution.head<2>().transpose();
+            //LOG(INFO) << "radius of the cirlce " << solution(2);
+            //LOG(INFO) << "error " << errorOfSolution(FLAGS_num_points, points, solution);
         },
         "GN Solver");
 

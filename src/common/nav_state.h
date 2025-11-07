@@ -7,7 +7,7 @@
 #include "common/eigen_types.h"
 #include "common/s2.hpp"
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <iomanip>
 
 namespace lightning {

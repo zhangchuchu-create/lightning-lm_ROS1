@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <glog/logging.h>
+//#include <glog/logging.h>
 
 namespace lightning::miao {
 
@@ -77,7 +77,7 @@ std::string strExpandFilename(const std::string& filename) {
     return result;
 #else
     (void)filename;
-    LOG(WARNING) << "not implemented";
+    //LOG(WARNING) << "not implemented";
     return std::string();
 #endif
 }

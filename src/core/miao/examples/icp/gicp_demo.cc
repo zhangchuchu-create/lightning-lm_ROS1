@@ -3,7 +3,7 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <cstdint>
 #include <iostream>
 #include <random>
@@ -137,9 +137,9 @@ class Edge_V_V_GICP : public miao::BaseBinaryEdge<3, EdgeGICP, miao::VertexSE3, 
 };
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     using namespace lightning::miao;
@@ -246,16 +246,16 @@ int main(int argc, char** argv) {
 
     optimizer.InitializeOptimization();
     optimizer.ComputeActiveErrors();
-    LOG(INFO) << "Initial chi2 = " << optimizer.Chi2();
+    //LOG(INFO) << "Initial chi2 = " << optimizer.Chi2();
 
     optimizer.SetVerbose(true);
 
     optimizer.Optimize(5);
 
-    LOG(INFO) << "Second vertex should be near 0,0,1";
-    LOG(INFO) << vp0->Estimate().translation().transpose() << ", "
-              << vp0->Estimate().unit_quaternion().coeffs().transpose();
-    LOG(INFO) << vp1->Estimate().translation().transpose() << ", "
-              << vp1->Estimate().unit_quaternion().coeffs().transpose();
+    //LOG(INFO) << "Second vertex should be near 0,0,1";
+    //LOG(INFO) << vp0->Estimate().translation().transpose() << ", "
+            //   << vp0->Estimate().unit_quaternion().coeffs().transpose();
+    //LOG(INFO) << vp1->Estimate().translation().transpose() << ", "
+            //   << vp1->Estimate().unit_quaternion().coeffs().transpose();
     return 0;
 }

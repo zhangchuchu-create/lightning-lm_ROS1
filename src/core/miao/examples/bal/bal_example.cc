@@ -3,7 +3,7 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <random>
 
 #include "core/common/eigen_types.h"
@@ -190,15 +190,15 @@ DEFINE_bool(verbose, true, "verbose output");
 DEFINE_string(graph_input, "./dataset/bal/problem-49-7776-pre.txt", "file which will be processed");
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     using namespace lightning::miao;
 
     Eigen::setNbThreads(8);
-    LOG(INFO) << "use_pcg " << FLAGS_use_PCG;
+    //LOG(INFO) << "use_pcg " << FLAGS_use_PCG;
     auto optimizer = SetupOptimizer<9, 3>(OptimizerConfig(
         AlgorithmType::LEVENBERG_MARQUARDT,
         FLAGS_use_PCG ? LinearSolverType::LINEAR_SOLVER_PCG : LinearSolverType::LINEAR_SOLVER_SPARSE_EIGEN, false));
@@ -207,13 +207,13 @@ int main(int argc, char** argv) {
     std::vector<std::shared_ptr<VertexCameraBAL>> cameras;
 
     // parse BAL dataset
-    LOG(INFO) << "Loading BAL dataset " << FLAGS_graph_input;
+    //LOG(INFO) << "Loading BAL dataset " << FLAGS_graph_input;
 
     std::ifstream ifs(FLAGS_graph_input);
     int numCameras, numPoints, numObservations;
     ifs >> numCameras >> numPoints >> numObservations;
 
-    LOG(INFO) << "cam: " << numCameras << ", pts: " << numPoints << ", obs: " << numObservations;
+    //LOG(INFO) << "cam: " << numCameras << ", pts: " << numPoints << ", obs: " << numObservations;
 
     int id = 0;
     cameras.reserve(numCameras);
@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
         p->SetMarginalized(true);
         bool addedVertex = optimizer->AddVertex(p);
         if (!addedVertex) {
-            LOG(ERROR) << "failing adding vertex";
+            //LOG(ERROR) << "failing adding vertex";
         }
         points.emplace_back(p);
     }
@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
         e->SetMeasurement(Vec2d(obsX, obsY));
         bool addedEdge = optimizer->AddEdge(e);
         if (!addedEdge) {
-            LOG(ERROR) << "error adding edge";
+            //LOG(ERROR) << "error adding edge";
         }
 
         edges.emplace_back(e);

@@ -13,26 +13,26 @@ namespace lightning {
 std::map<std::string, Timer::TimerRecord> Timer::records_;
 
 void Timer::PrintAll() {
-    LOG(INFO) << (">>> ===== Printing run time =====");
+    //LOG(INFO) << (">>> ===== Printing run time =====");
     for (auto& r : records_) {
         auto& rec = r.second.time_usage_in_ms_;
         std::sort(rec.begin(), rec.end());
 
-        LOG(INFO) << "> [" << r.first
-                  << "] average time usage: " << std::accumulate(rec.begin(), rec.end(), 0.0) / double(rec.size())
-                  << " ms, med: " << rec[rec.size() * 0.5] << " 95%: " << rec[rec.size() * 0.95]
-                  << ", called times : " << r.second.time_usage_in_ms_.size();
+        //LOG(INFO) << "> [" << r.first
+                //   << "] average time usage: " << std::accumulate(rec.begin(), rec.end(), 0.0) / double(rec.size())
+                //   << " ms, med: " << rec[rec.size() * 0.5] << " 95%: " << rec[rec.size() * 0.95]
+                //   << ", called times : " << r.second.time_usage_in_ms_.size();
     }
-    LOG(INFO) << ">>> ===== Printing run time end =====";
+    //LOG(INFO) << ">>> ===== Printing run time end =====";
 }
 
 void Timer::DumpIntoFile(const std::string& file_name) {
     std::ofstream ofs(file_name, std::ios::out);
     if (!ofs.is_open()) {
-        LOG(ERROR) << "Failed to open file: " << file_name;
+        //LOG(ERROR) << "Failed to open file: " << file_name;
         return;
     } else {
-        LOG(INFO) << "Dump Time Records into file: " << file_name;
+        //LOG(INFO) << "Dump Time Records into file: " << file_name;
     }
 
     size_t max_length = 0;

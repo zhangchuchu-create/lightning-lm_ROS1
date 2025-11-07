@@ -3,7 +3,7 @@
 //
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <cstdint>
 #include <iostream>
 #include <random>
@@ -28,9 +28,9 @@ DEFINE_bool(incremental_mode, true, "should we set incremental mode");
 DEFINE_int32(inc_vertex_size, -1, "max vertex size in inc mode, set -1 as unlimited size");
 
 int main(int argc, char** argv) {
-    google::InitGoogleLogging(argv[0]);
-    FLAGS_colorlogtostderr = true;
-    FLAGS_stderrthreshold = google::INFO;
+    //google::InitGoogleLogging(argv[0]);
+    //FLAGS_colorlogtostderr = true;
+    //    FLAGS_stderrthreshold = google::INFO; = google::INFO;
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     using namespace lightning::miao;
@@ -66,9 +66,9 @@ int main(int argc, char** argv) {
 
     OptimizerConfig config{AlgorithmType::LEVENBERG_MARQUARDT, miao::LinearSolverType::LINEAR_SOLVER_PCG, false};
     if (FLAGS_incremental_mode) {
-        LOG(INFO) << "setting incremental mode";
+        //LOG(INFO) << "setting incremental mode";
     } else {
-        LOG(INFO) << "not setting incremental mode";
+        //LOG(INFO) << "not setting incremental mode";
     }
 
     config.incremental_mode_ = FLAGS_incremental_mode;
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
             prev = v;
 
             if (id % 10 == 0) {
-                LOG(INFO) << "optimizing for " << id;
+                //LOG(INFO) << "optimizing for " << id;
                 Timer::Evaluate(
                     [&]() {
                         optimizer->InitializeOptimization();

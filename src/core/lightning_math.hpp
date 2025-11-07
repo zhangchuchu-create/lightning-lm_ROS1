@@ -7,16 +7,15 @@
 
 #pragma once
 
-#include <glog/logging.h>
 #include <pcl/filters/voxel_grid.h>
 #include <boost/array.hpp>
 #include <boost/math/tools/precision.hpp>
 #include <cmath>
 #include <numeric>
 
-#include <tf2/LinearMath/Matrix3x3.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <rclcpp/time.hpp>
+#include <tf/LinearMath/Matrix3x3.h>
+#include <tf/LinearMath/Quaternion.h>
+#include <ros/time.h>
 
 #include "common/eigen_types.h"
 #include "common/options.h"
@@ -24,6 +23,8 @@
 #include "common/pose_rpy.h"
 
 namespace lightning::math {
+
+//using namespace google::logging::internal;
 
 template <typename T>
 inline Eigen::Matrix<T, 3, 3> SKEW_SYM_MATRIX(const Eigen::Matrix<T, 3, 1>& v) {
@@ -567,11 +568,8 @@ inline void KeepAngleIn2PI(double& angle) {
     }
 }
 
-inline builtin_interfaces::msg::Time FromSec(double t) {
-    builtin_interfaces::msg::Time ret;
-    ret.sec = int32_t(t);
-    ret.nanosec = int32_t((t - ret.sec) * 1e9);
-    return ret;
+inline ros::Time FromSec(double t) {
+    return ros::Time(t);
 }
 
 /// 从pose中取出yaw pitch roll
@@ -582,7 +580,7 @@ inline builtin_interfaces::msg::Time FromSec(double t) {
 /// 2020.11 change back to tf to keep consist
 inline PoseRPYD SE3ToRollPitchYaw(const SE3& pose) {
     auto rot = pose.rotationMatrix();
-    tf2::Matrix3x3 temp_tf_matrix(rot(0, 0), rot(0, 1), rot(0, 2), rot(1, 0), rot(1, 1), rot(1, 2), rot(2, 0),
+    tf::Matrix3x3 temp_tf_matrix(rot(0, 0), rot(0, 1), rot(0, 2), rot(1, 0), rot(1, 1), rot(1, 2), rot(2, 0),
                                   rot(2, 1), rot(2, 2));
     PoseRPYD output;
     output.x = pose.translation()[0];
@@ -622,7 +620,7 @@ inline bool PoseInterp(double query_time, C&& data, FT&& take_time_func, FP&& ta
                        T& best_match, float time_th = 0.5, bool verbose = false) {
     if (data.size() <= 1) {
         if (verbose) {
-            LOG(INFO) << "data size is too small for interp: " << data.size();
+            //LOG(INFO) << "data size is too small for interp: " << data.size();
         }
         return false;
     }
@@ -631,7 +629,7 @@ inline bool PoseInterp(double query_time, C&& data, FT&& take_time_func, FP&& ta
     double first_time = take_time_func(*data.begin());
     if (query_time > last_time) {
         if (verbose) {
-            LOG(WARNING) << "query time is later than last time.";
+            //LOG(WARNING) << "query time is later than last time.";
         }
 
         if (query_time < (last_time + time_th)) {
@@ -693,14 +691,14 @@ inline bool PoseInterp(double query_time, C&& data, FT&& take_time_func, FP&& ta
         }
 
         if (verbose) {
-            LOG(WARNING) << "pose interp failed: " << query_time << ", " << (last_time + time_th) << ", "
-                         << (query_time < (last_time + time_th));
+            //LOG(WARNING) << "pose interp failed: " << query_time << ", " << (last_time + time_th) << ", "
+                        //  << (query_time < (last_time + time_th));
         }
         return false;
     } else if (query_time < first_time) {
         if (query_time < (first_time - time_th)) {
             if (verbose) {
-                LOG(WARNING) << "query time too early: " << ", " << query_time << ", " << (first_time - time_th);
+                //LOG(WARNING) << "query time too early: " << ", " << query_time << ", " << (first_time - time_th);
             }
             return false;
         } else {
