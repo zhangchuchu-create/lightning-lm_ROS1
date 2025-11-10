@@ -57,7 +57,6 @@ class LocSystem {
     std::shared_ptr<loc::Localization> loc_ = nullptr;  // 定位接口
 
     std::atomic_bool loc_started_ = false;  // 是否开启定位
-    std::atomic_bool map_loaded_ = false;   // 地图是否已载入
 
     /// 实时模式下的ros node, subscribers
     ros::NodeHandle nh_;
@@ -68,7 +67,6 @@ class LocSystem {
     std::string cloud_topic_;
     std::string livox_topic_;
     std::string livox_packet_topic_;
-    std::string livox_custom_topic_;
 
     ros::Subscriber imu_sub_;
     ros::Subscriber driver_imu_sub_;

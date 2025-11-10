@@ -69,9 +69,6 @@ class LaserMapping {
 
     void ProcessIMU(const lightning::IMUPtr &msg_in);
 
-    /// 保存前端的地图
-    void SaveMap();
-
     void SetUI(std::shared_ptr<ui::PangolinWindow> ui) { ui_ = ui; }
 
     /// 获取关键帧

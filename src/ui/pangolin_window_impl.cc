@@ -67,34 +67,7 @@ bool PangolinWindowImpl::DeInit() {
     return true;
 }
 
-bool PangolinWindowImpl::UpdateGlobalMap() {
-    if (!cloud_global_need_update_.load()) {
-        return false;
-    }
 
-    std::lock_guard<std::mutex> lock(mtx_map_cloud_);
-    for (const auto &cp : cloud_global_map_) {
-        if (cloud_map_ui_.find(cp.first) != cloud_map_ui_.end()) {
-            continue;
-        }
-
-        std::shared_ptr<ui::UiCloud> ui_cloud(new ui::UiCloud);
-        ui_cloud->SetCloud(cp.second, SE3());
-        ui_cloud->SetRenderColor(ui::UiCloud::UseColor::GRAY_COLOR);
-        cloud_map_ui_.emplace(cp.first, ui_cloud);
-    }
-
-    for (auto iter = cloud_map_ui_.begin(); iter != cloud_map_ui_.end();) {
-        if (cloud_global_map_.find(iter->first) == cloud_global_map_.end()) {
-            iter = cloud_map_ui_.erase(iter);
-        } else {
-            iter++;
-        }
-    }
-    cloud_global_need_update_.store(false);
-
-    return true;
-}
 
 bool PangolinWindowImpl::UpdateDynamicMap() {
     if (!cloud_dynamic_need_update_.load()) {
@@ -248,7 +221,6 @@ void PangolinWindowImpl::RenderClouds() {
     UL lock(mtx_reset_);
 
     // 更新各种推送过来的状态
-    UpdateGlobalMap();
     UpdateDynamicMap();
     UpdateState();
     UpdateCurrentScan();

@@ -3,8 +3,8 @@ common:
   dataset: "nclt"
   lidar_topic: "points_raw2"
   # livox_lidar_topic: "/livox/lidar"
-  livox_lidar_topic: "/livox_lidar_custom"
-  driver_lidar_packet_topic: "/driver/lidar_packets/top2"
+  livox_lidar_topic: "/livox_lidar_custom2"
+  driver_lidar_packet_topic: "/driver/lidar_packets/top"
   imu_topic: "/livox/imu"
   driver_imu_topic: "/tpsensor_imu2"
 

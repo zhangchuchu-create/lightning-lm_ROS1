@@ -107,7 +107,6 @@ class PangolinWindowImpl {
 
     /// 渲染点云，调用各种Update函数
     void RenderClouds();
-    bool UpdateGlobalMap();
     bool UpdateDynamicMap();
     bool UpdateState();
     bool UpdateCurrentScan();

@@ -420,7 +420,6 @@ void LidarLoc::UpdateMapThread() {
 void LidarLoc::SetInitialPose(SE3 init_pose) {
     UL lock(initial_pose_mutex_);
     loc_inited_ = false;
-    // map_->ClearMap();
 
     initial_pose_set_ = true;
     initial_pose_ = init_pose;
@@ -724,7 +723,6 @@ void LidarLoc::Align(const CloudPtr& input) {
                 pcl::transformPointCloud(*input_z_filter, *cloud_t, current_pose_esti.matrix());
 
                 // 以现在的scan来更新地图
-                map_->UpdateDynamicCloud(cloud_t, true);
 
                 last_dyn_upd_pose_.timestamp_ = current_time;
                 last_dyn_upd_pose_.pose_ = current_pose_esti;
@@ -942,7 +940,7 @@ void LidarLoc::Finish() {
         /// 永久保存时，再存储地图
         if (options_.map_option_.policy_ == TiledMap::DynamicCloudPolicy::PERSISTENT &&
             options_.map_option_.save_dyn_when_quit_ && !has_set_pose_) {
-            map_->SaveToBin(true);
+            // map_->SaveToBin(true);
             //LOG(INFO) << "dynamic maps saved";
         }
     }

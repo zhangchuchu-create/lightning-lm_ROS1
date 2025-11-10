@@ -49,9 +49,6 @@ class AsyncMessageProcess {
     /// 退出
     void Quit();
 
-    /// 清空跳帧计数器，下一个数据会立即执行
-    void CleanSkipCnt();
-
     void SetName(std::string name) { name_ = std::move(name); }
     void SetSkipParam(bool enable_skip, int skip_num) { enable_skip_ = enable_skip, skip_num_ = skip_num; }
 
@@ -78,11 +75,6 @@ class AsyncMessageProcess {
     ProcFunc custom_func_;
 };
 
-template <typename T>
-void AsyncMessageProcess<T>::CleanSkipCnt() {
-    UL lock(mutex_);
-    skip_cnt_ = 0;
-}
 
 template <typename T>
 AsyncMessageProcess<T>::AsyncMessageProcess(AsyncMessageProcess::ProcFunc proc_func, std::string name) {

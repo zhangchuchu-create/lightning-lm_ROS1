@@ -17,20 +17,6 @@ namespace lightning {
  */
 bool PathExists(const std::string& file_path);
 
-/**
- * 若文件存在，则删除之
- * @param path
- * @return
- */
-bool RemoveIfExist(const std::string& path);
-
-/**
- * 判断某路径是否为目录
- * @param path
- * @return
- */
-bool IsDirectory(const std::string& path);
-
 }
 
 #endif  // LIGHTNING_FILE_IO_H

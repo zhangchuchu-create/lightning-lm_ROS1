@@ -4,13 +4,7 @@
 
 #include <gflags/gflags.h>
 
-//using namespace google::logging::internal;
-
 #include "core/system/loc_system.h"
-#include "ui/pangolin_window.h"
-#include "wrapper/ros_utils.h"
-
-//using namespace google::logging::internal;
 
 DEFINE_string(config, "./config/default.yaml", "配置文件");
 

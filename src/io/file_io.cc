@@ -11,15 +11,4 @@ bool PathExists(const std::string& file_path) {
     return std::filesystem::exists(path);
 }
 
-bool RemoveIfExist(const std::string& path) {
-    if (PathExists(path)) {
-        // //LOG(INFO) << "remove " << path;
-        system(("rm -f " + path).c_str());
-        return true;
-    }
-    return false;
-}
-
-bool IsDirectory(const std::string& path) { return std::filesystem::is_directory(path); }
-
 }  // namespace lightning

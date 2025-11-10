@@ -37,7 +37,6 @@ file(GLOB_RECURSE MY_SRV_FILES srv/*.srv)
 add_service_files(
     FILES
     LocCmd.srv
-    SaveMap.srv
 )
 
 generate_messages(

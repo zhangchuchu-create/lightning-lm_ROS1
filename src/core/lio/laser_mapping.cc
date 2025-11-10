@@ -697,15 +697,6 @@ CloudPtr LaserMapping::GetGlobalMap(bool use_lio_pose, bool use_voxel, float res
     return global_map_filtered;
 }
 
-void LaserMapping::SaveMap() {
-    /// 保存地图
-    auto global_map = GetGlobalMap(true);
-
-    pcl::io::savePCDFileBinaryCompressed("./data/lio.pcd", *global_map);
-
-    //LOG(INFO) << "lio map is saved to ./data/lio.pcd";
-}
-
 CloudPtr LaserMapping::GetRecentCloud() {
     if (lidar_buffer_.empty()) {
         return nullptr;

@@ -238,9 +238,6 @@ class TiledMap {
         }
     }
 
-    /// 清理地图
-    void ClearMap();
-
    private:
     /**
      * 测试某个点是否落在动态区域

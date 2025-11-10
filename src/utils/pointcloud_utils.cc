@@ -20,19 +20,5 @@ CloudPtr VoxelGrid(CloudPtr cloud, float voxel_size) {
     return output;
 }
 
-/// 移除地面
-void RemoveGround(CloudPtr cloud, float z_min) {
-    CloudPtr output(new PointCloudType);
-    for (const auto &pt : cloud->points) {
-        if (pt.z > z_min) {
-            output->points.emplace_back(pt);
-        }
-    }
-
-    output->height = 1;
-    output->is_dense = false;
-    output->width = output->points.size();
-    cloud->swap(*output);
-}
 
 }  // namespace lightning

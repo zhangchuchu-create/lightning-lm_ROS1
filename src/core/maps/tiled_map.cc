@@ -33,51 +33,7 @@ bool TiledMap::ConvertFromFullPCD(CloudPtr map, const SE3& start_pose, const std
         }
     }
 
-    SaveToBin(false);
     return true;
-}
-
-void TiledMap::SaveToBin(bool only_dynamic) {
-    //LOG(INFO) << "map is saved to " << options_.map_path_ << ", sz: " << static_chunks_.size();
-
-    if (!only_dynamic) {
-        /// 原点+索引
-        std::ofstream fout(options_.map_path_ + "/index.txt");
-        fout << std::setprecision(18) << origin_[0] << " " << origin_[1] << " " << origin_[2] << std::endl;
-
-        for (auto& cp : static_chunks_) {
-            if (cp.second->cloud_->empty()) {
-                continue;
-            }
-
-            std::string filename = options_.map_path_ + "/" + std::to_string(cp.second->id_) + ".pcd";
-            pcl::io::savePCDFileBinaryCompressed(filename,
-                                                 *math::VoxelGrid(cp.second->cloud_, options_.voxel_size_in_chunk_));
-            fout << cp.second->id_ << " " << cp.first[0] << " " << cp.first[1] << " " << filename << std::endl;
-        }
-
-        /// functional points
-        fout << "# functional points" << std::endl;
-        for (const auto& fp : func_points_) {
-            auto t = fp.pose_.translation();
-            auto q = fp.pose_.unit_quaternion();
-            fout << fp.name_ << " " << t[0] << " " << t[1] << " " << t[2] << " " << q.x() << " " << q.y() << " "
-                 << q.z() << " " << q.w() << std::endl;
-        }
-
-        return;
-    }
-
-    for (auto& cp : dynamic_chunks_) {
-        /// 只存储动态图层
-        /// 如果同一栅格还存在动态图层，应该把动态图层也存下来
-        if (cp.second->cloud_ != nullptr && !cp.second->cloud_->empty()) {
-            std::string filename = options_.map_path_ + "/" + std::to_string(cp.second->id_) + "_dyn.pcd";
-            cp.second->cloud_->width = cp.second->cloud_->size();
-            pcl::io::savePCDFileBinaryCompressed(filename,
-                                                 *math::VoxelGrid(cp.second->cloud_, options_.voxel_size_in_chunk_));
-        }
-    }
 }
 
 bool TiledMap::LoadMapIndex() {
@@ -86,9 +42,6 @@ bool TiledMap::LoadMapIndex() {
         //LOG(ERROR) << "cannot load map index from: " << options_.map_path_;
         return false;
     }
-
-    //LOG(INFO) << "loading maps";
-    ClearMap();
 
     bool first_line = true;
     bool reading_fp = false;
@@ -215,62 +168,6 @@ bool TiledMap::LoadMapIndex() {
     chunk_id_++;
 
     return true;
-}
-
-void TiledMap::ClearMap() {
-    UL lock(static_data_mutex_);
-    UL lock2(dynamic_data_mutex_);
-    static_chunks_.clear();
-    dynamic_chunks_.clear();
-    origin_.setZero();
-}
-
-void TiledMap::AddStaticCloud(CloudPtr cloud) {
-    std::set<KeyType, math::less_vec<3>> active_voxels;  // 记录哪些voxel被更新
-    for (const auto& p : cloud->points) {
-        auto pt = ToVec3f(p);
-        auto key = (pt * ndt_map_options_.inv_voxel_size_).cast<int>();
-        auto iter = static_grids_.find(key);
-        if (iter == static_grids_.end()) {
-            // 栅格不存在
-            static_grids_.insert({key, VoxelData(pt)});
-
-        } else {
-            // 栅格存在，添加点，更新缓存
-            iter->second.AddPoint(pt);
-        }
-
-        active_voxels.emplace(key);
-    }
-
-    // 更新active_voxels
-    std::for_each(active_voxels.begin(), active_voxels.end(),
-                  [this](const auto& key) { UpdateVoxel(static_grids_[key]); });
-    flag_first_static_scan_ = false;
-}
-
-void TiledMap::AddDynamicCloud(CloudPtr cloud) {
-    std::set<KeyType, math::less_vec<3>> active_voxels;  // 记录哪些voxel被更新
-    for (const auto& p : cloud->points) {
-        auto pt = ToVec3f(p);
-        auto key = (pt * ndt_map_options_.inv_voxel_size_).cast<int>();
-        auto iter = dynamic_grids_.find(key);
-        if (iter == dynamic_grids_.end()) {
-            // 栅格不存在
-            dynamic_grids_.insert({key, VoxelData(pt)});
-
-        } else {
-            // 栅格存在，添加点，更新缓存
-            iter->second.AddPoint(pt);
-        }
-
-        active_voxels.emplace(key);
-    }
-
-    // 更新active_voxels
-    std::for_each(active_voxels.begin(), active_voxels.end(),
-                  [this](const auto& key) { UpdateVoxel(dynamic_grids_[key]); });
-    flag_first_dynamic_scan_ = false;
 }
 
 void TiledMap::LoadOnPose(const SE3& pose) {

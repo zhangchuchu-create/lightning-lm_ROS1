@@ -10,11 +10,6 @@ add_library(${PROJECT_NAME} SHARED
         core/lio/eskf.cc
         core/lio/laser_mapping.cc
         core/lio/pointcloud_preprocess.cc
-        core/loop_closing/loop_closing.cc
-
-        core/g2p5/g2p5_map.cc
-        core/g2p5/g2p5.cc
-        core/g2p5/g2p5_subgrid.cc
 
         core/maps/tiled_map.cc
         core/maps/tiled_map_chunk.cc
@@ -38,10 +33,8 @@ add_library(${PROJECT_NAME} SHARED
         ui/ui_cloud.cc
         ui/ui_trajectory.cc
 
-        core/system/slam.cc
         core/system/loc_system.cc
 
-        wrapper/bag_io.cc
 )
 
 add_dependencies(${PROJECT_NAME}
