@@ -29,11 +29,15 @@ SlamSystem::SlamSystem(lightning::SlamSystem::Options options) : options_(option
 }
 
 bool SlamSystem::Init(const std::string& yaml_path) {
+    std::cout << "初始化 SLAM 系统..." << std::endl;
+    
     lio_ = std::make_shared<LaserMapping>();
     if (!lio_->Init(yaml_path)) {
+        std::cout << "错误: LIO 模块初始化失败" << std::endl;
         //LOG(ERROR) << "failed to init lio module";
         return false;
     }
+    std::cout << "LIO 模块初始化成功" << std::endl;
 
     auto yaml = YAML::LoadFile(yaml_path);
     options_.with_loop_closing_ = yaml["system"]["with_loop_closing"].as<bool>();
@@ -43,6 +47,7 @@ bool SlamSystem::Init(const std::string& yaml_path) {
     options_.step_on_kf_ = yaml["system"]["step_on_kf"].as<bool>();
 
     if (options_.with_loop_closing_) {
+        std::cout << "启用回环检测模块" << std::endl;
         //LOG(INFO) << "slam with loop closing";
         LoopClosing::Options options;
         options.online_mode_ = options_.online_mode_;
@@ -51,6 +56,7 @@ bool SlamSystem::Init(const std::string& yaml_path) {
     }
 
     if (options_.with_visualization_) {
+        std::cout << "启用3D可视化" << std::endl;
         //LOG(INFO) << "slam with 3D UI";
         ui_ = std::make_shared<ui::PangolinWindow>();
         ui_->Init();
@@ -86,6 +92,7 @@ bool SlamSystem::Init(const std::string& yaml_path) {
     }
 
     if (options_.online_mode_) {
+        std::cout << "在线模式，创建 ROS 节点..." << std::endl;
         //LOG(INFO) << "online mode, creating ros node ... ";
 
         /// subscribers

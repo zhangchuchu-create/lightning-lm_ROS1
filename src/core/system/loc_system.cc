@@ -38,6 +38,7 @@ bool LocSystem::Init(const std::string &yaml_path) {
     driver_imu_topic_ = yaml.GetValue<std::string>("common", "driver_imu_topic");
     cloud_topic_ = yaml.GetValue<std::string>("common", "lidar_topic");
     livox_topic_ = yaml.GetValue<std::string>("common", "livox_lidar_topic");
+    livox_packet_topic_ = yaml.GetValue<std::string>("common", "driver_lidar_packet_topic");
 
     imu_sub_ = nh_.subscribe<sensor_msgs::Imu>(
         imu_topic_, 1000, [this](const sensor_msgs::ImuConstPtr& msg) {
@@ -143,7 +144,6 @@ void LocSystem::ProcessLivoxPacket(const driver_msgs::LivoxPacketConstPtr &packe
     if (!loc_started_) {
         return;
     }
-/*
     // 解析 LivoxPacket 原始数据包
     uint64_t packet_time = packet->header.stamp.toNSec();
     int num_packets = packet->data.size() / SCAN_PACKET_SIZE;
@@ -211,7 +211,7 @@ void LocSystem::ProcessLivoxPacket(const driver_msgs::LivoxPacketConstPtr &packe
             ++iter_x; ++iter_y; ++iter_z; ++iter_intensity; ++iter_time; ++iter_ring;
         }
     }
-*/    
+/*
     pcl::PointCloud<livox_ros::PointXYZRTLT>::Ptr cloud(new pcl::PointCloud<livox_ros::PointXYZRTLT>);
     uint64_t packet_time = packet->header.stamp.toNSec();  // 给的时间戳度是头时间戳
     int num_packets = packet->data.size() / SCAN_PACKET_SIZE;
@@ -267,8 +267,10 @@ void LocSystem::ProcessLivoxPacket(const driver_msgs::LivoxPacketConstPtr &packe
     sensor_msgs::PointCloud2Ptr cloud_msg(new sensor_msgs::PointCloud2());
     pcl::toROSMsg(*cloud, *cloud_msg);
     cloud_msg->header = packet->header;
+
+    */
     // 处理解析后的点云
-    loc_->ProcessLidarMsg(cloud_msg);
+    loc_->ProcessLidarMsg(cloud);
 }
 
 void LocSystem::Spin() {

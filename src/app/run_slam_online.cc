@@ -29,19 +29,28 @@ int main(int argc, char** argv) {
     SlamSystem::Options options;
     options.online_mode_ = true;
 
+    std::cout << "=== Lightning SLAM Online 启动 ===" << std::endl;
+    std::cout << "配置文件: " << FLAGS_config << std::endl;
+
     SlamSystem slam(options);
     if (!slam.Init(FLAGS_config)) {
+        std::cout << "错误: 初始化 SLAM 失败" << std::endl;
         //LOG(ERROR) << "failed to init slam";
         return -1;
     }
 
+    std::cout << "SLAM 初始化成功，等待传感器数据..." << std::endl;
+
     slam.StartSLAM("new_map");
     slam.Spin();
+
+    std::cout << "SLAM 运行结束" << std::endl;
 
     Timer::PrintAll();
 
     ros::shutdown();
 
+    std::cout << "程序正常退出" << std::endl;
     //LOG(INFO) << "done";
 
     return 0;
